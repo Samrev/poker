@@ -1,0 +1,121 @@
+/* Game Container */
+.game-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background: linear-gradient(135deg, #1e2a78, #03031c);
+    color: #fff;
+    font-family: 'Poppins', sans-serif;
+    text-align: center;
+    padding: 20px;
+  }
+  
+  /* Welcome Message */
+  .game-container h2 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    font-weight: 600;
+  }
+  
+  /* Game Controls */
+  .game-controls {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 30px;
+  }
+  
+  .game-controls button {
+    background-color: #ffcc00;
+    color: #1e2a78;
+    border: none;
+    padding: 15px 30px;
+    font-size: 1.2rem;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .game-controls button:hover {
+    background-color: #e6b800;
+    transform: translateY(-3px);
+  }
+  
+  /* Modal Styling */
+  .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  .modal-content {
+    background-color: #fff;
+    color: #333;
+    padding: 40px;
+    border-radius: 12px;
+    width: 400px;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.2);
+    text-align: center;
+  }
+  
+  .modal-content h3 {
+    margin-bottom: 20px;
+    font-size: 1.8rem;
+    color: #1e2a78;
+  }
+  
+  .modal-content input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 20px;
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    font-size: 1rem;
+    outline: none;
+    transition: border 0.3s ease;
+  }
+  
+  .modal-content input:focus {
+    border-color: #1e2a78;
+  }
+  
+  .modal-actions {
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  .modal-actions button {
+    padding: 10px 20px;
+    font-size: 1rem;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .modal-actions button:first-child {
+    background-color: #1e2a78;
+    color: #fff;
+  }
+  
+  .modal-actions button:first-child:hover {
+    background-color: #16206b;
+  }
+  
+  .modal-actions button:last-child {
+    background-color: #ccc;
+    color: #333;
+  }
+  
+  .modal-actions button:last-child:hover {
+    background-color: #b3b3b3;
+  }
+  

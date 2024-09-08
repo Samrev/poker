@@ -1,0 +1,92 @@
+/* General Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  /* Body Styling */
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #1f1c2c, #928dab);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #fff;
+  }
+  
+  /* Home Container */
+  .home-container {
+    text-align: center;
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 50px;
+    border-radius: 15px;
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+    transition: transform 0.3s ease-in-out;
+  }
+  
+  .home-container:hover {
+    transform: scale(1.05);
+  }
+  
+  .home-container h1 {
+    font-size: 3rem;
+    margin-bottom: 30px;
+    color: #fff;
+    letter-spacing: 2px;
+    text-shadow: 0 5px 10px rgba(0, 0, 0, 0.5);
+  }
+  
+  /* Button Styling */
+  button {
+    padding: 15px 40px;
+    font-size: 1.2rem;
+    color: #fff;
+    background-color: #ff5722;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.4s ease;
+    box-shadow: 0 10px 20px rgba(255, 87, 34, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+  }
+  
+  button:hover {
+    background-color: #e64a19;
+    box-shadow: 0 15px 30px rgba(255, 87, 34, 0.5);
+    transform: translateY(-3px);
+  }
+  
+  button:active {
+    transform: translateY(1px);
+  }
+  
+  /* Media Queries for Responsiveness */
+  @media (max-width: 768px) {
+    .home-container {
+      padding: 30px;
+    }
+  
+    .home-container h1 {
+      font-size: 2.5rem;
+    }
+  
+    button {
+      padding: 12px 35px;
+      font-size: 1rem;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .home-container h1 {
+      font-size: 2rem;
+    }
+  
+    button {
+      padding: 10px 30px;
+      font-size: 0.9rem;
+    }
+  }
+  
