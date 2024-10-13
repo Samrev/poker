@@ -9,7 +9,7 @@ const EnterRoomModal: React.FC<EnterRoomModalProps> = ({handleCancelEnterRoom, g
     const handleEnterRoom = async () => {
         const res = await joinRoom(roomId, guestId);
         if(res && res.status === 200){
-          navigate(`/room/${roomId}`);
+          navigate(`/room/${roomId}?guestId=${guestId}`);
           handleCancelEnterRoom();
         }
         

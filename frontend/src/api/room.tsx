@@ -19,7 +19,7 @@ export const createRoom = async ( numPlayers : Number): Promise<string | undefin
 export const getRoom = async (roomId: string): Promise<Room | undefined> => {
     const server = process.env.REACT_APP_API_BASE_URL!;
     try {
-      const res = await axios.get<Room>(`${server}/api/rooms/${roomId}`);
+      const res = await axios.get(`${server}/api/rooms/${roomId}`);
       if (res.status === 200 && res.data) {
         console.log('Got room', res.data)
         return res.data;
@@ -36,20 +36,24 @@ export const getRoom = async (roomId: string): Promise<Room | undefined> => {
   export const joinRoom = async (roomId: string, guestId:string): Promise<AxiosResponse | undefined> => {
     const server = process.env.REACT_APP_API_BASE_URL!;
     try {
-        const res = await axios.post(`${server}/api/rooms/${roomId}/join/?guestId=${guestId}`);
+        const res = await axios.put(`${server}/api/rooms/${roomId}/join/?guestId=${guestId}`);
         if (res.status === 200) {
             console.log(`Player ${guestId} joined room ${roomId}`);
             return res
         } else {
             throw new Error('Failed to join room');
         }
-    } catch (error:any) {
-        if(error.response.status === 400){
-            alert("Room is full or player already in the room");
-        }
-        else if(error.response.status === 404){
-            alert('Inavlid Room Id');
+    } catch (error: unknown) {
+        if (axios.isAxiosError(error) && error.response) {
+            if (error.response.status === 400) {
+                alert("Room is full or player already in the room");
+            } else if (error.response.status === 404) {
+                alert('Invalid Room Id');
+            }
+        } else {
+            console.error("An unknown error occurred:", error);
         }
         return undefined;
     }
+    
   };

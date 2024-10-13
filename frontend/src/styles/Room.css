@@ -1,60 +1,140 @@
+/* Room.css */
 .room-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  background-color: #f0f2f5;
   padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #f0f4ff, #d9e2fc);
+  min-height: 100vh;
+  text-align: center;
 }
 
 h2 {
-  color: #333;
-  font-size: 24px;
-  margin-bottom: 20px;
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+  font-family: "Poppins", sans-serif;
+  font-size: 28px;
+  color: #2c3e50;
+  font-weight: 600;
+  margin-bottom: 30px;
+  text-align: center;
 }
 
 .player-cards {
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 20px;
-  max-width: 800px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 25px;
+  width: 100%;
+  max-width: 1200px;
 }
 
 .player-card {
-  width: 120px;
-  height: 60px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  background: linear-gradient(135deg, #ff7e5f, #feb47b);
-  border-radius: 10px;
-  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.1);
-  color: white;
-  font-weight: bold;
+  background: linear-gradient(135deg, #ffebf7, #ffe0f5);
+  border-radius: 16px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  padding: 25px;
   text-align: center;
-  transition: transform 0.3s, box-shadow 0.3s;
-}
-
-.player-card h3 {
-  font-size: 18px;
-  margin: 0;
-  letter-spacing: 1px;
-}
-
-.player-card p {
-  font-size: 12px;
-  margin: 5px 0 0;
-}
-
-.player-card.playing {
-  background: linear-gradient(135deg, #56ccf2, #2f80ed);
+  transition: all 0.4s ease-in-out;
+  position: relative;
+  font-family: "Roboto", sans-serif;
 }
 
 .player-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  transform: scale(1.08);
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.3);
+}
+
+.player-card h3 {
+  font-size: 20px;
+  color: #34495e;
+  margin-bottom: 15px;
+  font-weight: bold;
+  letter-spacing: 1.2px;
+}
+
+.player-card p {
+  font-size: 16px;
+  color: #7f8c8d;
+  margin-top: 10px;
+}
+
+.highlight {
+  border: 3px solid #8e44ad;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(142, 68, 173, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 20px rgba(142, 68, 173, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(142, 68, 173, 0);
+  }
+}
+
+.action-button {
+  background: linear-gradient(135deg, #6a11cb, #2575fc);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 25px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-size: 16px;
+  margin-top: 15px;
+}
+
+.action-button:hover {
+  background: linear-gradient(135deg, #8e44ad, #f39c12);
+  transform: translateY(-3px);
+}
+
+.waiting-message {
+  font-size: 16px;
+  color: #bdc3c7;
+}
+
+.room-background {
+  background: linear-gradient(135deg, #f0f4ff, #d9e2fc);
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+@media (max-width: 768px) {
+  .player-cards {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  }
+
+  .player-card {
+    padding: 15px;
+  }
+}
+
+.leave-room-button {
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 16px;
+  border-radius: 5px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  transition: background-color 0.3s ease;
+  margin-bottom: 20px;
+}
+
+.leave-room-button:hover {
+  background-color: #c0392b;
+}
+
+.leave-room-button svg {
+  margin-right: 8px;
+}
+
+.highlight {
+  border: 2px solid #3498db;
+  background-color: #ecf0f1;
 }

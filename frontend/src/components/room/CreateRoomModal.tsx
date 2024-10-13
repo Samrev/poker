@@ -13,7 +13,7 @@ const CreateRoomModal: React.FC<CreateRoomModalProps> = ({ handleCancelCreateRoo
     }
     const res = await joinRoom(roomId, guestId);
     if(res && res.status === 200){
-      navigate(`/room/${roomId}`);
+      navigate(`/room/${roomId}?guestId=${guestId}`);
       handleCancelCreateRoom();
     }
     else{
