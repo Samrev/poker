@@ -46,7 +46,7 @@ export const toggleReadyPlayer = async (
 
 // Leave Room API
 export const leaveRoom = async (
-  roomId: string,
+  roomId: string | undefined,
   guestId: string | null
 ): Promise<void> => {
   try {

@@ -1,26 +1,24 @@
-//TODO: Make a Leave room functionality
-
 import React, { useEffect, useState, useCallback } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { getRoom } from "../../api/room";
 import "../../styles/Room.css";
 import { Player } from "../../types";
-import { FaCheckCircle, FaSignOutAlt, FaUserCircle } from "react-icons/fa"; // Icons
+import {
+  FaCheckCircle,
+  FaPlay,
+  FaSignOutAlt,
+  FaUserCircle,
+} from "react-icons/fa";
 import { leaveRoom, toggleReadyPlayer } from "../../api/players";
 import { io } from "socket.io-client";
 
 const socket = io(process.env.REACT_APP_API_BASE_URL);
+
 const Room: React.FC = () => {
   const { roomId } = useParams<{ roomId: string }>();
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Ensure roomId exists
-  if (!roomId) {
-    throw new Error("Room ID is missing");
-  }
-
-  // Extract guestId from query parameters
   const queryParams = new URLSearchParams(location.search);
   const guestId = queryParams.get("guestId");
 
@@ -30,31 +28,39 @@ const Room: React.FC = () => {
     if (!guestId || !roomId) {
       navigate("/");
     }
-    console.log("useEffect called");
     socket.emit("joinRoom", { roomId, guestId });
   }, [guestId, roomId, navigate]);
 
   const [players, setPlayers] = useState<Player[]>([]);
+  const [maxNumberOfPlayers, setMaxNumberOfPlayers] = useState<number>(0);
+  const [isStartButtonEnabled, setStartButtonEnabled] = useState(false);
 
-  // Fetch players function, memoized to avoid unnecessary re-renders
-  const fetchPlayers = useCallback(async () => {
+  const checkIfReadyToStart = (
+    players: Player[],
+    maxNumberOfPlayers: number
+  ) => {
+    const allPlayersIn = players.length === maxNumberOfPlayers;
+    const allPlayersReady = players.every((player) => player.isPlaying);
+    setStartButtonEnabled(allPlayersReady && allPlayersIn);
+  };
+
+  // Fetch room details and players
+  const fetchRoomData = useCallback(async () => {
     try {
       const room = await getRoom(roomId);
       if (room) {
         setPlayers(room.players || []);
-        console.log("Player Set");
+        setMaxNumberOfPlayers(room.maxNumberOfPlayers || 0); // Set max players
+        checkIfReadyToStart(room.players || [], room.maxNumberOfPlayers);
       }
-      console.log("fetched players");
     } catch (error) {
-      console.error("Failed to fetch players", error);
+      console.error("Failed to fetch room data", error);
     }
   }, [roomId]);
 
-  // Toggle player readiness
   const handlePlayerReady = async () => {
     try {
       await toggleReadyPlayer(guestId);
-      console.log("Player readiness toggling");
       socket.emit("toogleReadinessStatus", { roomId, guestId });
     } catch (error) {
       console.error("Failed to toggle player readiness", error);
@@ -64,30 +70,27 @@ const Room: React.FC = () => {
   const handleLeaveRoom = async () => {
     try {
       await leaveRoom(roomId, guestId);
-      console.log("Player leaving the room");
       socket.emit("leaveRoom", { roomId, guestId });
-      navigate("/"); // Navigate back to the home page or a lobby after leaving
+      navigate("/");
     } catch (error) {
       console.error("Failed to leave room", error);
     }
   };
 
+  const handleStartGame = () => {
+    console.log("Game starting");
+    socket.emit("startGame", { roomId, guestId });
+    navigate(`/poker/${roomId}?guestId=${guestId}`);
+  };
+
   useEffect(() => {
-    fetchPlayers();
+    fetchRoomData();
 
-    socket.on("readyStatusChanged", (data) => {
-      console.log(`${data.guestId} toggled readiness`);
-      fetchPlayers();
-    });
-
-    socket.on("playerJoined", (data) => {
-      console.log(`${data.guestId} joined the room`);
-      fetchPlayers();
-    });
-
-    socket.on("playerLeft", (data) => {
-      console.log(`${data.guestId} left the room`);
-      fetchPlayers();
+    socket.on("readyStatusChanged", fetchRoomData);
+    socket.on("playerJoined", fetchRoomData);
+    socket.on("playerLeft", fetchRoomData);
+    socket.on("gameStarted", () => {
+      navigate(`/poker/${roomId}?guestId=${guestId}`);
     });
 
     return () => {
@@ -95,7 +98,40 @@ const Room: React.FC = () => {
       socket.off("playerJoined");
       socket.off("playerLeft");
     };
-  }, [fetchPlayers]);
+  }, [fetchRoomData, roomId, guestId, navigate]);
+
+  const isHost = players.length > 0 && players[0].guestId === guestId;
+
+  // Create an array for the player blocks (fixed size based on maxNumberOfPlayers)
+  const playerBlocks = Array.from(
+    { length: maxNumberOfPlayers },
+    (_, index) => {
+      const player = players[index];
+      return (
+        <div
+          key={index}
+          className={`player-card ${player?.guestId === guestId ? "highlight" : ""}`}
+        >
+          <FaUserCircle
+            size={40}
+            color="#3498db"
+            style={{ marginBottom: "10px" }}
+          />
+          <h3>{player ? player.guestId : "Waiting for player..."}</h3>
+          {player && player.guestId === guestId ? (
+            <button className="action-button" onClick={handlePlayerReady}>
+              <FaCheckCircle style={{ marginRight: "8px" }} />
+              {player.isPlaying ? "Wait" : "Ready"}
+            </button>
+          ) : (
+            <p className="waiting-message">
+              {player && player.isPlaying ? "Ready!" : "Waiting..."}
+            </p>
+          )}
+        </div>
+      );
+    }
+  );
 
   return (
     <div className="room-container">
@@ -104,31 +140,19 @@ const Room: React.FC = () => {
         <FaSignOutAlt style={{ marginRight: "8px" }} />
         Leave Room
       </button>
-      <div className="player-cards">
-        {players.map((player, index) => (
-          <div
-            key={index}
-            className={`player-card ${guestId === player.guestId ? "highlight" : ""}`}
-          >
-            <FaUserCircle
-              size={40}
-              color="#3498db"
-              style={{ marginBottom: "10px" }}
-            />
-            <h3>{player.guestId}</h3>
-            {guestId === player.guestId ? (
-              <button className="action-button" onClick={handlePlayerReady}>
-                <FaCheckCircle style={{ marginRight: "8px" }} />
-                {player.isPlaying ? "Wait" : "Ready"}
-              </button>
-            ) : (
-              <p className="waiting-message">
-                {player.isPlaying ? "Ready!" : "Waiting..."}
-              </p>
-            )}
-          </div>
-        ))}
-      </div>
+
+      <div className="player-cards">{playerBlocks}</div>
+
+      {isHost && (
+        <button
+          className={`start-game-button ${isStartButtonEnabled ? "active" : "disabled"}`}
+          onClick={handleStartGame}
+          disabled={!isStartButtonEnabled}
+        >
+          <FaPlay style={{ marginRight: "8px" }} />
+          Start Game
+        </button>
+      )}
     </div>
   );
 };

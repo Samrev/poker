@@ -133,7 +133,37 @@ h2 {
 .leave-room-button svg {
   margin-right: 8px;
 }
+.start-game-button {
+  background-color: #2ecc71;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 16px;
+  border-radius: 5px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  transition: background-color 0.3s ease;
+  margin-top: 20px;
+}
 
+.start-game-button:hover {
+  background-color: #27ae60;
+}
+
+.start-game-button svg {
+  margin-right: 8px;
+}
+
+.start-game-button.disabled {
+  background-color: #bdc3c7;
+  cursor: not-allowed;
+}
+
+.start-game-button.active {
+  background-color: #2ecc71;
+  cursor: pointer;
+}
 .highlight {
   border: 2px solid #3498db;
   background-color: #ecf0f1;

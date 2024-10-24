@@ -1,6 +1,5 @@
 import Player from "../models/player.js";
 import Room from "../models/room.js";
-import io from "../server.js";
 
 const incrementHexId = (hexId) => {
   const idAsNumber = parseInt(hexId, 16) + 1;
@@ -33,7 +32,6 @@ export const toggleReadyPlayer = async (req, res) => {
 
   try {
     const player = await Player.findOne({ guestId: guestId }).populate("room");
-    console.log("Player", player);
 
     if (!player) {
       return res.status(404).json({ message: "Player not found" });
@@ -44,7 +42,6 @@ export const toggleReadyPlayer = async (req, res) => {
       { $set: { isPlaying: !player.isPlaying } },
       { new: true }
     );
-    io.to(player.room.roomId).emit("PlayerReadinessToggled");
 
     return res.status(200).json(updatedPlayer);
   } catch (error) {
