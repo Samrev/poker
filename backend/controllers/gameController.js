@@ -20,7 +20,7 @@ export const startGame = async (req, res) => {
     }
     const room = await Room.findOne({ roomId: roomId }).populate("players");
     const players = room.players.map((player) => player.guestId);
-    const playerBalances = players.reduce((acc, guestId) => {
+    const playersBalances = players.reduce((acc, guestId) => {
       acc[guestId] = 500;
       return acc;
     }, {});
@@ -42,8 +42,11 @@ export const startGame = async (req, res) => {
       roomId: roomId,
       playerCards: playerCards,
       pokerCards: pokerCards,
-      playerBalances: playerBalances,
+      playersBalances: playersBalances,
       playerTurn: players[0],
+      Dealer: players[0],
+      currentSmallBlind: players[1],
+      currentBigBlind: players[2],
     });
 
     await game.save();

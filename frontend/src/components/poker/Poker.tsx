@@ -1,30 +1,49 @@
 import React, { useCallback, useEffect, useState } from "react";
 import "../../styles/Poker.css";
-import { useLocation, useParams } from "react-router-dom";
-import PlayerBalancesModal from "./PlayerBalancesModal";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+import PlayersBalancesModal from "./PlayersBalancesModal";
 import CardDisplay from "./CardDisplay";
 import { startGame } from "../../api/game";
 const Poker: React.FC = () => {
+  const navigate = useNavigate();
   const { roomId } = useParams<{ roomId: string }>();
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const guestId = searchParams.get("guestId");
+  useEffect(() => {
+    if (!guestId) {
+      navigate("/");
+    }
+  }, [guestId, navigate]);
 
   const [potBalance, setPotBalance] = useState<number>(0);
   const [currentPlayer, setCurrentPlayer] = useState<string | null>(null);
   const [showBalancesModal, setShowBalancesModal] = useState<boolean>(false);
-  const [playersBalance, setplayersBalance] = useState<any>([]);
+  const [playersBalances, setplayersBalances] = useState(new Map());
+  const [pokerCards, setPokerCards] = useState<string[]>([]);
+  const [playerCards, setPlayerCards] = useState<string[]>([]);
+  const [isActionButtonsEnabled, setIsActionButtonsEnabled] =
+    useState<boolean>(false);
+  const [roundCount, setRoundCount] = useState<number>(0);
+  const [currentBid, setCurrentBid] = useState<number>(0);
 
   const fetchGameData = useCallback(async () => {
     try {
       const gameData = await startGame(roomId);
+      console.log(gameData);
       setPotBalance(gameData.potBalance);
-      setCurrentPlayer(gameData.playerturn);
-      console.log("gameData", gameData);
+      setCurrentPlayer(gameData.playerTurn);
+      setplayersBalances(gameData.playersBalances);
+      setPokerCards(gameData.pokerCards);
+      setCurrentBid(gameData.currentBid);
+      if (guestId !== null) {
+        setPlayerCards(gameData.playerCards[guestId]);
+      }
+      setIsActionButtonsEnabled(gameData.playerTurn === guestId);
     } catch (error) {
       console.error("Error fetching game data:", error);
     }
-  }, [roomId]);
+  }, [roomId, guestId]);
 
   useEffect(() => {
     fetchGameData();
@@ -51,29 +70,39 @@ const Poker: React.FC = () => {
 
     setPotBalance((prev) => prev + 100);
   };
-
-  const pokerCards = [
-    "king_of_clubs",
-    "king_of_diamonds",
-    "king_of_hearts",
-    "king_of_spades",
-    "ace_of_clubs",
-  ];
+  const mainDeck = "card back black";
+  const hiddenPokerCards = "card back orange";
+  const isCardShown = (cardIndex: number) => {
+    return (
+      cardIndex < 3 ||
+      (cardIndex === 3 && roundCount >= 1) ||
+      (cardIndex === 4 && roundCount >= 2)
+    );
+  };
 
   return (
     <div className="poker-container">
-      <h2 className="pot-balance">Pot Balance: ${potBalance}</h2>
+      <div className="pot-bid-container">
+        <h2 className="pot-balance">Pot Balance: ${potBalance}</h2>
+        <h2 className="current-bid">Current Bid: ${currentBid}</h2>
+      </div>
 
       <div className="flex-container">
-        <div className="deck">
-          <div className="card back">Deck</div>
+        <div className="poker-table">
+          <h3>Deck</h3>
+          <div className="community-cards">
+            <CardDisplay card={mainDeck} />
+          </div>
         </div>
 
         <div className="poker-table">
           <h3>Poker Cards</h3>
           <div className="community-cards">
             {pokerCards.map((card, index) => (
-              <CardDisplay key={index} card={card} />
+              <CardDisplay
+                key={index}
+                card={isCardShown(index) ? card : hiddenPokerCards}
+              />
             ))}
           </div>
         </div>
@@ -88,21 +117,33 @@ const Poker: React.FC = () => {
           <div className="player-cards-block">
             <h4>Your Cards</h4>
             <div className="player-hand">
-              <div className="card">A♦</div> {/* Example card */}
-              <div className="card">K♠</div> {/* Example card */}
+              <CardDisplay card={playerCards[0]} />
+              <CardDisplay card={playerCards[1]} />
             </div>
           </div>
         </div>
       </div>
 
       <div className="action-buttons">
-        <button className="action-button check" onClick={handleCheck}>
+        <button
+          className="action-button check"
+          onClick={handleCheck}
+          disabled={!isActionButtonsEnabled}
+        >
           Check
         </button>
-        <button className="action-button fold" onClick={handleFold}>
+        <button
+          className="action-button fold"
+          onClick={handleFold}
+          disabled={!isActionButtonsEnabled}
+        >
           Fold
         </button>
-        <button className="action-button raise" onClick={handleRaise}>
+        <button
+          className="action-button raise"
+          onClick={handleRaise}
+          disabled={!isActionButtonsEnabled}
+        >
           Raise
         </button>
       </div>
@@ -113,8 +154,8 @@ const Poker: React.FC = () => {
         </button>
 
         {showBalancesModal && (
-          <PlayerBalancesModal
-            playerBalances={playersBalance}
+          <PlayersBalancesModal
+            playersBalances={playersBalances}
             handleCloseButton={handleCloseModal}
           />
         )}

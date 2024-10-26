@@ -22,9 +22,22 @@
   min-height: 100vh;
   font-family: "Poppins", sans-serif;
 }
+.pot-bid-container {
+  display: flex;
+  justify-content: space-between; /* Aligns items on opposite sides */
+  width: 100%; /* Ensure it takes full width */
+}
 
 /* Pot Balance Styling */
 .pot-balance {
+  font-size: 28px;
+  font-weight: bold;
+  color: #f39c12;
+  margin-bottom: 20px;
+  animation: pulse 1s infinite;
+  padding-top: 30px;
+}
+.current-bid {
   font-size: 28px;
   font-weight: bold;
   color: #f39c12;
@@ -52,6 +65,7 @@
   padding: 20px;
   border-radius: 15px;
   height: fit-content;
+  width: 100%;
 }
 
 .community-cards {
@@ -59,6 +73,7 @@
   margin-top: 10px;
   gap: 20px;
   justify-content: center;
+  width: 100%;
 }
 
 .card {
@@ -131,6 +146,11 @@
 .action-button:hover {
   transform: translateY(-3px);
   background: linear-gradient(135deg, #1abc9c, #2ecc71);
+}
+.action-button:disabled {
+  background-color: grey;
+  cursor: not-allowed;
+  opacity: 0.3;
 }
 
 .check {

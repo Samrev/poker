@@ -1,5 +1,3 @@
-import { Key } from "react";
-
 export interface Player {
   guestId: string;
   isPlaying: boolean;
@@ -21,8 +19,8 @@ export interface CreateRoomModalProps {
   guestId: string;
 }
 
-export interface PlayerBalancesModalProps {
-  playerBalances: { id: number; name: string; balance: number }[];
+export interface PlayersBalancesModalProps {
+  playersBalances: Map<string, number>;
   handleCloseButton: () => void;
 }
 

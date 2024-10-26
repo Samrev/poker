@@ -1,9 +1,9 @@
 import React from "react";
-import "../../styles/PlayerBalancesModal.css";
-import { PlayerBalancesModalProps } from "../../types";
+import "../../styles/PlayersBalancesModal.css";
+import { PlayersBalancesModalProps } from "../../types";
 
-const PlayerBalancesModal: React.FC<PlayerBalancesModalProps> = ({
-  playerBalances,
+const PlayersBalancesModal: React.FC<PlayersBalancesModalProps> = ({
+  playersBalances,
   handleCloseButton,
 }) => {
   return (
@@ -13,17 +13,15 @@ const PlayerBalancesModal: React.FC<PlayerBalancesModalProps> = ({
         <table className="player-balances-table">
           <thead>
             <tr>
-              <th>Player ID</th>
-              <th>Name</th>
+              <th>Player Id</th>
               <th>Balance</th>
             </tr>
           </thead>
           <tbody>
-            {playerBalances.map((player, index) => (
-              <tr key={index}>
-                <td>{index}</td>
-                <td>{player.name}</td>
-                <td>${player.balance}</td>
+            {Object.entries(playersBalances).map(([name, balance]) => (
+              <tr key={name}>
+                <td>{name}</td>
+                <td>${balance}</td>
               </tr>
             ))}
           </tbody>
@@ -36,4 +34,4 @@ const PlayerBalancesModal: React.FC<PlayerBalancesModalProps> = ({
   );
 };
 
-export default PlayerBalancesModal;
+export default PlayersBalancesModal;

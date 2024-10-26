@@ -26,7 +26,7 @@ const gameSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
-  playerBalances: {
+  playersBalances: {
     type: Map,
     of: {
       type: Number,
@@ -50,6 +50,19 @@ const gameSchema = new mongoose.Schema({
       type: Boolean,
       default: true,
     },
+  },
+  currentBid: {
+    type: Number,
+    default: 0,
+  },
+  currentDealer: {
+    type: String,
+  },
+  currentBigBlind: {
+    type: String,
+  },
+  currentSmallBlind: {
+    type: String,
   },
 });
 
