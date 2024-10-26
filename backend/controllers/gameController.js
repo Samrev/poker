@@ -44,7 +44,7 @@ export const startGame = async (req, res) => {
       pokerCards: pokerCards,
       playersBalances: playersBalances,
       playerTurn: players[0],
-      Dealer: players[0],
+      currentDealer: players[0],
       currentSmallBlind: players[1],
       currentBigBlind: players[2],
     });

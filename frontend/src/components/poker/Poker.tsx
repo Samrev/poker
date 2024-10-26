@@ -1,9 +1,10 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import "../../styles/Poker.css";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import PlayersBalancesModal from "./PlayersBalancesModal";
 import CardDisplay from "./CardDisplay";
 import { startGame } from "../../api/game";
+import PlayerRole from "../../strings";
 const Poker: React.FC = () => {
   const navigate = useNavigate();
   const { roomId } = useParams<{ roomId: string }>();
@@ -26,6 +27,18 @@ const Poker: React.FC = () => {
     useState<boolean>(false);
   const [roundCount, setRoundCount] = useState<number>(0);
   const [currentBid, setCurrentBid] = useState<number>(0);
+  const [isDealer, setIsDealer] = useState<boolean>(false);
+  const [isBigBlind, setIsBigBlind] = useState<boolean>(false);
+  const [isSmallBlind, setIsSmallBlind] = useState<boolean>(false);
+  const getTitle = useMemo(() => {
+    return isDealer
+      ? PlayerRole.dealer
+      : isSmallBlind
+        ? PlayerRole.smallBlind
+        : isBigBlind
+          ? PlayerRole.bigBlind
+          : PlayerRole.player;
+  }, [isDealer, isSmallBlind, isBigBlind]);
 
   const fetchGameData = useCallback(async () => {
     try {
@@ -36,6 +49,9 @@ const Poker: React.FC = () => {
       setplayersBalances(gameData.playersBalances);
       setPokerCards(gameData.pokerCards);
       setCurrentBid(gameData.currentBid);
+      setIsDealer(gameData.currentDealer === guestId);
+      setIsBigBlind(gameData.currentBigBlind === guestId);
+      setIsSmallBlind(gameData.currentSmallBlind === guestId);
       if (guestId !== null) {
         setPlayerCards(gameData.playerCards[guestId]);
       }
@@ -121,6 +137,9 @@ const Poker: React.FC = () => {
               <CardDisplay card={playerCards[1]} />
             </div>
           </div>
+        </div>
+        <div className="player-title">
+          <h3>{getTitle}</h3>
         </div>
       </div>
 

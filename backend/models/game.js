@@ -57,12 +57,15 @@ const gameSchema = new mongoose.Schema({
   },
   currentDealer: {
     type: String,
+    required: true,
   },
   currentBigBlind: {
     type: String,
+    required: true,
   },
   currentSmallBlind: {
     type: String,
+    required: true,
   },
 });
 
