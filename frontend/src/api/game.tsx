@@ -4,7 +4,7 @@ export const startGame = async (
   roomId: string | undefined
 ): Promise<any | undefined> => {
   try {
-    const server = process.env.REACT_APP_API_BASE_URL;
+    const server = process.env.REACT_APP_API_URL;
     if (!server) {
       throw new Error("API base URL is not defined");
     }

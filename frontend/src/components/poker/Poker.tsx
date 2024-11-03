@@ -1,30 +1,44 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import "../../styles/Poker.css";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import PlayersBalancesModal from "./PlayersBalancesModal";
 import CardDisplay from "./CardDisplay";
 import { startGame } from "../../api/game";
 import PlayerRole from "../../strings";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 const Poker: React.FC = () => {
   const navigate = useNavigate();
   const { roomId } = useParams<{ roomId: string }>();
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const guestId = searchParams.get("guestId");
+
   useEffect(() => {
     if (!guestId) {
       navigate("/");
     }
   }, [guestId, navigate]);
+  if (!guestId) {
+    throw Error("Guest ID missing");
+  }
 
   const [potBalance, setPotBalance] = useState<number>(0);
   const [currentPlayer, setCurrentPlayer] = useState<string | null>(null);
   const [showBalancesModal, setShowBalancesModal] = useState<boolean>(false);
-  const [playersBalances, setplayersBalances] = useState(new Map());
+  const playersBalances = useRef(new Map());
   const [pokerCards, setPokerCards] = useState<string[]>([]);
   const [playerCards, setPlayerCards] = useState<string[]>([]);
-  const [isActionButtonsEnabled, setIsActionButtonsEnabled] =
-    useState<boolean>(false);
+  const [isCheckEnabled, setIsCheckEnabled] = useState<boolean>(false);
+  const [isRaiseEnabled, setIsRaiseEnabled] = useState<boolean>(false);
+  const [isFoldEnabled, setIsFoldEnabled] = useState<boolean>(false);
   const [roundCount, setRoundCount] = useState<number>(0);
   const [currentBid, setCurrentBid] = useState<number>(0);
   const [isDealer, setIsDealer] = useState<boolean>(false);
@@ -46,7 +60,7 @@ const Poker: React.FC = () => {
       console.log(gameData);
       setPotBalance(gameData.potBalance);
       setCurrentPlayer(gameData.playerTurn);
-      setplayersBalances(gameData.playersBalances);
+      playersBalances.current = gameData.playersBalances;
       setPokerCards(gameData.pokerCards);
       setCurrentBid(gameData.currentBid);
       setIsDealer(gameData.currentDealer === guestId);
@@ -54,8 +68,28 @@ const Poker: React.FC = () => {
       setIsSmallBlind(gameData.currentSmallBlind === guestId);
       if (guestId !== null) {
         setPlayerCards(gameData.playerCards[guestId]);
+        setIsFoldEnabled(
+          gameData.currentSmallBlind !== guestId &&
+            gameData.currentBigBlind !== guestId &&
+            gameData.playersStatus[guestId] &&
+            gameData.playerTurn === guestId
+        );
+        setIsCheckEnabled(
+          gameData.playersStatus[guestId] &&
+            gameData.playerTurn === guestId &&
+            (gameData.currentSmallBlind !== guestId ||
+              gameData.currentBid > 0) &&
+            (gameData.currentBigBlind !== guestId ||
+              gameData.currentBid >
+                gameData.playersBids[gameData.currentSmallBlind]) &&
+            gameData.playersBalances > gameData.currentBid
+        );
+        setIsRaiseEnabled(
+          gameData.playersStatus[guestId] &&
+            gameData.playerTurn === guestId &&
+            gameData.playersBalances[guestId] > gameData.currentBid
+        );
       }
-      setIsActionButtonsEnabled(gameData.playerTurn === guestId);
     } catch (error) {
       console.error("Error fetching game data:", error);
     }
@@ -74,7 +108,17 @@ const Poker: React.FC = () => {
   };
 
   const handleCheck = () => {
-    console.log("Player checked");
+    playersBalances.current.set(
+      guestId,
+      playersBalances.current.get(guestId) - currentBid
+    );
+
+    toast.info("Player checked", {
+      autoClose: 3000,
+      hideProgressBar: true,
+      closeOnClick: true,
+      pauseOnHover: true,
+    });
   };
 
   const handleFold = () => {
@@ -147,21 +191,21 @@ const Poker: React.FC = () => {
         <button
           className="action-button check"
           onClick={handleCheck}
-          disabled={!isActionButtonsEnabled}
+          disabled={!isCheckEnabled}
         >
           Check
         </button>
         <button
           className="action-button fold"
           onClick={handleFold}
-          disabled={!isActionButtonsEnabled}
+          disabled={!isFoldEnabled}
         >
           Fold
         </button>
         <button
           className="action-button raise"
           onClick={handleRaise}
-          disabled={!isActionButtonsEnabled}
+          disabled={!isRaiseEnabled}
         >
           Raise
         </button>
@@ -174,7 +218,7 @@ const Poker: React.FC = () => {
 
         {showBalancesModal && (
           <PlayersBalancesModal
-            playersBalances={playersBalances}
+            playersBalances={playersBalances.current}
             handleCloseButton={handleCloseModal}
           />
         )}

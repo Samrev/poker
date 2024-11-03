@@ -12,7 +12,7 @@ import {
 import { leaveRoom, toggleReadyPlayer } from "../../api/players";
 import { io } from "socket.io-client";
 
-const socket = io(process.env.REACT_APP_API_BASE_URL);
+const socket = io(process.env.REACT_APP_API_URL);
 
 const Room: React.FC = () => {
   const { roomId } = useParams<{ roomId: string }>();

@@ -3,7 +3,8 @@ import axios from "axios";
 // Create Guest API (Already Defined)
 export const createGuest = async (): Promise<string | undefined> => {
   try {
-    const server = process.env.REACT_APP_API_BASE_URL;
+    const server = process.env.REACT_APP_API_URL;
+    console.log(server);
     if (!server) {
       throw new Error("API base URL is not defined");
     }
@@ -25,7 +26,7 @@ export const toggleReadyPlayer = async (
   guestId: string | null
 ): Promise<void> => {
   try {
-    const server = process.env.REACT_APP_API_BASE_URL;
+    const server = process.env.REACT_APP_API_URL;
     if (!server) {
       throw new Error("API base URL is not defined");
     }
@@ -50,7 +51,7 @@ export const leaveRoom = async (
   guestId: string | null
 ): Promise<void> => {
   try {
-    const server = process.env.REACT_APP_API_BASE_URL;
+    const server = process.env.REACT_APP_API_URL;
     if (!server) {
       throw new Error("API base URL is not defined");
     }
