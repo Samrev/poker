@@ -19,19 +19,24 @@ export const startGame = async (req, res) => {
       return res.status(200).json(Oldgame);
     }
     const room = await Room.findOne({ roomId: roomId }).populate("players");
+    console.log("Room", room);
     const players = room.players.map((player) => player.guestId);
+    console.log("players", players);
     const playersBalances = players.reduce((acc, guestId) => {
       acc[guestId] = 500;
       return acc;
     }, {});
     let playerCards = new Map();
+    let playersStatus = new Map();
     let cardIndex = 0;
     for (let playerId of players) {
       playerCards.set(playerId, [
         shuffledDeck[cardIndex++],
         shuffledDeck[cardIndex++],
       ]);
+      playersStatus.set(playerId, true);
     }
+    console.log("playerstatus", playersStatus);
 
     let pokerCards = [];
     for (let i = 0; i < 5; i++) {
@@ -43,10 +48,11 @@ export const startGame = async (req, res) => {
       playerCards: playerCards,
       pokerCards: pokerCards,
       playersBalances: playersBalances,
-      playerTurn: players[0],
+      playerTurn: players[1],
       currentDealer: players[0],
       currentSmallBlind: players[1],
       currentBigBlind: players[2],
+      playersStatus: playersStatus,
     });
 
     await game.save();

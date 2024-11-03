@@ -37,19 +37,19 @@ const gameSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  playerBids: {
+  playersBids: {
     type: Map,
     of: {
       type: Number,
     },
     default: {},
   },
-  playerStatus: {
+  playersStatus: {
     type: Map,
     of: {
       type: Boolean,
-      default: true,
     },
+    required: true,
   },
   currentBid: {
     type: Number,
