@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { useParams, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { getRoom } from "../../api/room";
 import "../../styles/Room.css";
 import { Player } from "../../types";
@@ -11,18 +11,15 @@ import {
 } from "react-icons/fa";
 import { leaveRoom, toggleReadyPlayer } from "../../api/players";
 import { io } from "socket.io-client";
+import { startGame } from "../../api/game";
 
 const socket = io(process.env.REACT_APP_API_URL);
 
 const Room: React.FC = () => {
-  const { roomId } = useParams<{ roomId: string }>();
   const location = useLocation();
+  const { roomId, guestId } = location.state || {};
+  console.log(roomId, guestId);
   const navigate = useNavigate();
-
-  const queryParams = new URLSearchParams(location.search);
-  const guestId = queryParams.get("guestId");
-
-  socket.emit("RoomId", roomId);
 
   useEffect(() => {
     if (!guestId || !roomId) {
@@ -77,10 +74,10 @@ const Room: React.FC = () => {
     }
   };
 
-  const handleStartGame = () => {
-    console.log("Game starting");
-    socket.emit("startGame", { roomId, guestId });
-    navigate(`/poker/${roomId}?guestId=${guestId}`);
+  const handleStartGame = async () => {
+    await startGame(roomId);
+    socket.emit("startGame", { roomId });
+    navigate("/poker", { state: { roomId, guestId } });
   };
 
   useEffect(() => {
@@ -90,7 +87,7 @@ const Room: React.FC = () => {
     socket.on("playerJoined", fetchRoomData);
     socket.on("playerLeft", fetchRoomData);
     socket.on("gameStarted", () => {
-      navigate(`/poker/${roomId}?guestId=${guestId}`);
+      navigate("/poker", { state: { roomId, guestId } });
     });
 
     return () => {

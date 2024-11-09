@@ -1,7 +1,7 @@
-import React from 'react';
-import '../styles/Home.css';
-import { useNavigate } from 'react-router-dom';
-import { createGuest } from '../api/players';
+import React from "react";
+import "../styles/Home.css";
+import { useNavigate } from "react-router-dom";
+import { createGuest } from "../api/players";
 
 // Functional component with React.FC type
 const Home: React.FC = () => {
@@ -9,9 +9,13 @@ const Home: React.FC = () => {
   const handlePlayAsGuest = async () => {
     const guestId = await createGuest();
     if (guestId) {
-      navigate(`/guest/${guestId}`);
+      navigate(`/guest/`, {
+        state: {
+          guestId,
+        },
+      });
     } else {
-      console.error('Failed to create guest');
+      console.error("Failed to create guest");
     }
   };
   return (

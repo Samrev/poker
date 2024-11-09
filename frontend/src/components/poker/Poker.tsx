@@ -1,103 +1,71 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import "../../styles/Poker.css";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import PlayersBalancesModal from "./PlayersBalancesModal";
 import CardDisplay from "./CardDisplay";
-import { startGame } from "../../api/game";
 import PlayerRole from "../../strings";
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify"; // Import ToastContainer
 import "react-toastify/dist/ReactToastify.css";
+import { usePoker } from "./hooks/usePoker";
 
 const Poker: React.FC = () => {
   const navigate = useNavigate();
-  const { roomId } = useParams<{ roomId: string }>();
   const location = useLocation();
-  const searchParams = new URLSearchParams(location.search);
-  const guestId = searchParams.get("guestId");
+  const { roomId, guestId } = location.state || {};
 
+  // Check for guestId and roomId, navigate if undefined
   useEffect(() => {
-    if (!guestId) {
+    if (!guestId || !roomId) {
       navigate("/");
     }
-  }, [guestId, navigate]);
-  if (!guestId) {
-    throw Error("Guest ID missing");
-  }
+  }, [guestId, roomId, navigate]);
 
-  const [potBalance, setPotBalance] = useState<number>(0);
-  const [currentPlayer, setCurrentPlayer] = useState<string | null>(null);
+  const { playerData, error } = usePoker(roomId, guestId);
+  const roundCount = useRef(0);
   const [showBalancesModal, setShowBalancesModal] = useState<boolean>(false);
-  const playersBalances = useRef(new Map());
-  const [pokerCards, setPokerCards] = useState<string[]>([]);
-  const [playerCards, setPlayerCards] = useState<string[]>([]);
-  const [isCheckEnabled, setIsCheckEnabled] = useState<boolean>(false);
-  const [isRaiseEnabled, setIsRaiseEnabled] = useState<boolean>(false);
-  const [isFoldEnabled, setIsFoldEnabled] = useState<boolean>(false);
-  const [roundCount, setRoundCount] = useState<number>(0);
-  const [currentBid, setCurrentBid] = useState<number>(0);
-  const [isDealer, setIsDealer] = useState<boolean>(false);
-  const [isBigBlind, setIsBigBlind] = useState<boolean>(false);
-  const [isSmallBlind, setIsSmallBlind] = useState<boolean>(false);
   const getTitle = useMemo(() => {
-    return isDealer
+    return playerData?.isDealer
       ? PlayerRole.dealer
-      : isSmallBlind
+      : playerData?.isSmallBlind
         ? PlayerRole.smallBlind
-        : isBigBlind
+        : playerData?.isBigBlind
           ? PlayerRole.bigBlind
           : PlayerRole.player;
-  }, [isDealer, isSmallBlind, isBigBlind]);
+  }, [playerData]);
 
-  const fetchGameData = useCallback(async () => {
-    try {
-      const gameData = await startGame(roomId);
-      console.log(gameData);
-      setPotBalance(gameData.potBalance);
-      setCurrentPlayer(gameData.playerTurn);
-      playersBalances.current = gameData.playersBalances;
-      setPokerCards(gameData.pokerCards);
-      setCurrentBid(gameData.currentBid);
-      setIsDealer(gameData.currentDealer === guestId);
-      setIsBigBlind(gameData.currentBigBlind === guestId);
-      setIsSmallBlind(gameData.currentSmallBlind === guestId);
-      if (guestId !== null) {
-        setPlayerCards(gameData.playerCards[guestId]);
-        setIsFoldEnabled(
-          gameData.currentSmallBlind !== guestId &&
-            gameData.currentBigBlind !== guestId &&
-            gameData.playersStatus[guestId] &&
-            gameData.playerTurn === guestId
-        );
-        setIsCheckEnabled(
-          gameData.playersStatus[guestId] &&
-            gameData.playerTurn === guestId &&
-            (gameData.currentSmallBlind !== guestId ||
-              gameData.currentBid > 0) &&
-            (gameData.currentBigBlind !== guestId ||
-              gameData.currentBid >
-                gameData.playersBids[gameData.currentSmallBlind]) &&
-            gameData.playersBalances > gameData.currentBid
-        );
-        setIsRaiseEnabled(
-          gameData.playersStatus[guestId] &&
-            gameData.playerTurn === guestId &&
-            gameData.playersBalances[guestId] > gameData.currentBid
-        );
-      }
-    } catch (error) {
-      console.error("Error fetching game data:", error);
-    }
-  }, [roomId, guestId]);
+  console.log("playerData", playerData);
 
-  useEffect(() => {
-    fetchGameData();
-  }, [fetchGameData]);
+  if (error) {
+    console.error("Error fetching game data:", error);
+    return <div>Error loading game data.</div>;
+  }
+
+  // Ensure playerData is loaded
+  if (!playerData) {
+    return <div>Loading...</div>;
+  }
+
+  const hasBalanceToCheck =
+    Number(playerData.playersBalances[guestId]) >= playerData.currentBid;
+  const hasBalanceToRaise =
+    Number(playerData.playersBalances[guestId]) > playerData.currentBid;
+  const isNotBlind =
+    roundCount.current > 0 ||
+    (!playerData.isSmallBlind && !playerData.isBigBlind);
+
+  const isFoldEnabled =
+    isNotBlind && playerData.playerStatus && playerData.isPlayerTurn;
+
+  const isCheckEnabled =
+    isNotBlind &&
+    playerData.playerStatus &&
+    playerData.isPlayerTurn &&
+    hasBalanceToCheck;
+
+  const isRaiseEnabled =
+    playerData.isPlayerTurn && playerData.playerStatus && hasBalanceToRaise;
+
+  const isAllInEnabled = playerData.isPlayerTurn && playerData.playerStatus;
 
   const handleShowBalances = () => {
     setShowBalancesModal(true);
@@ -108,11 +76,6 @@ const Poker: React.FC = () => {
   };
 
   const handleCheck = () => {
-    playersBalances.current.set(
-      guestId,
-      playersBalances.current.get(guestId) - currentBid
-    );
-
     toast.info("Player checked", {
       autoClose: 3000,
       hideProgressBar: true,
@@ -126,25 +89,30 @@ const Poker: React.FC = () => {
   };
 
   const handleRaise = () => {
-    console.log("Player raised");
-
-    setPotBalance((prev) => prev + 100);
+    toast.info("Player raised", {
+      autoClose: 3000,
+      hideProgressBar: true,
+      closeOnClick: true,
+      pauseOnHover: true,
+    });
   };
+
   const mainDeck = "card back black";
   const hiddenPokerCards = "card back orange";
+
   const isCardShown = (cardIndex: number) => {
     return (
       cardIndex < 3 ||
-      (cardIndex === 3 && roundCount >= 1) ||
-      (cardIndex === 4 && roundCount >= 2)
+      (cardIndex === 3 && roundCount.current >= 1) ||
+      (cardIndex === 4 && roundCount.current >= 2)
     );
   };
 
   return (
     <div className="poker-container">
       <div className="pot-bid-container">
-        <h2 className="pot-balance">Pot Balance: ${potBalance}</h2>
-        <h2 className="current-bid">Current Bid: ${currentBid}</h2>
+        <h2 className="pot-balance">Pot Balance: ${playerData.potBalance}</h2>
+        <h2 className="current-bid">Current Bid: ${playerData.currentBid}</h2>
       </div>
 
       <div className="flex-container">
@@ -158,7 +126,7 @@ const Poker: React.FC = () => {
         <div className="poker-table">
           <h3>Poker Cards</h3>
           <div className="community-cards">
-            {pokerCards.map((card, index) => (
+            {playerData.pokerCards.map((card: string, index: number) => (
               <CardDisplay
                 key={index}
                 card={isCardShown(index) ? card : hiddenPokerCards}
@@ -168,17 +136,13 @@ const Poker: React.FC = () => {
         </div>
       </div>
 
-      <div className="player-info">
-        <h3>Player {currentPlayer}'s Turn</h3>
-      </div>
-
       <div className="player-section">
         <div className="player-cards">
           <div className="player-cards-block">
             <h4>Your Cards</h4>
             <div className="player-hand">
-              <CardDisplay card={playerCards[0]} />
-              <CardDisplay card={playerCards[1]} />
+              <CardDisplay card={playerData.playerCards[0]} />
+              <CardDisplay card={playerData.playerCards[1]} />
             </div>
           </div>
         </div>
@@ -209,6 +173,13 @@ const Poker: React.FC = () => {
         >
           Raise
         </button>
+        <button
+          className="action-button all-in"
+          onClick={handleRaise}
+          disabled={!isAllInEnabled}
+        >
+          All In
+        </button>
       </div>
 
       <div className="balance-container">
@@ -218,11 +189,13 @@ const Poker: React.FC = () => {
 
         {showBalancesModal && (
           <PlayersBalancesModal
-            playersBalances={playersBalances.current}
+            playersBalances={playerData.playersBalances}
             handleCloseButton={handleCloseModal}
           />
         )}
       </div>
+
+      <ToastContainer />
     </div>
   );
 };

@@ -20,10 +20,23 @@ export interface CreateRoomModalProps {
 }
 
 export interface PlayersBalancesModalProps {
-  playersBalances: Map<string, number>;
+  playersBalances: Record<string, number>;
   handleCloseButton: () => void;
 }
 
 export interface CardDisplayProps {
   card: string;
+}
+export interface PlayerGameData {
+  potBalance: number;
+  currentBid: number;
+  playerBid: number;
+  playerCards: string[];
+  pokerCards: string[];
+  playersBalances: Record<string, number>;
+  isPlayerTurn: boolean;
+  isDealer: boolean;
+  isSmallBlind: boolean;
+  isBigBlind: boolean;
+  playerStatus: boolean;
 }

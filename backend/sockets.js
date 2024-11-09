@@ -20,7 +20,7 @@ const socketHandler = (io) => {
     });
 
     socket.on("startGame", ({ roomId, guestId }) => {
-      console.log(`Guest ${guestId} has started the game in ${roomId}`);
+      console.log(`Game has started in the room ${roomId}`);
       socket.to(roomId).emit("gameStarted", { roomId });
     });
   });

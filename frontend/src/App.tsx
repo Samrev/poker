@@ -10,9 +10,9 @@ const App: React.FC = () => {
     <Router>
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/guest/:guestId" element={<Game />} />
-        <Route path="/room/:roomId" element={<Room />} />
-        <Route path="/poker/:roomId" element={<Poker />} />
+        <Route path="/guest/" element={<Game />} />
+        <Route path="/room/" element={<Room />} />
+        <Route path="/poker/" element={<Poker />} />
       </Routes>
     </Router>
   );

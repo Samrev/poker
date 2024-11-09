@@ -6,10 +6,10 @@ const gameSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
-  playerCards: {
-    type: Map,
+  playersCards: {
+    type: Object,
     of: {
-      type: [String], // Array of strings
+      type: [String],
       validate: {
         validator: arrayLimit,
         message: "Each player must have exactly two cards.",
@@ -27,7 +27,7 @@ const gameSchema = new mongoose.Schema({
     default: 0,
   },
   playersBalances: {
-    type: Map,
+    type: Object,
     of: {
       type: Number,
     },
@@ -38,14 +38,14 @@ const gameSchema = new mongoose.Schema({
     required: true,
   },
   playersBids: {
-    type: Map,
+    type: Object,
     of: {
       type: Number,
     },
-    default: {},
+    required: true,
   },
   playersStatus: {
-    type: Map,
+    type: Object,
     of: {
       type: Boolean,
     },
@@ -72,7 +72,6 @@ const gameSchema = new mongoose.Schema({
 function arrayLimit(val) {
   return val.length === 2;
 }
-
 function pokerCardsLimit(val) {
   return val.length === 5;
 }

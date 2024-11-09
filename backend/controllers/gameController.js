@@ -11,32 +11,26 @@ const shuffle = (array) => {
 };
 
 export const startGame = async (req, res) => {
-  const { roomId } = req.params;
+  const { roomId } = req.body;
   const shuffledDeck = shuffle(deck);
   try {
-    const Oldgame = await Game.findOne({ roomId: roomId });
-    if (Oldgame) {
-      return res.status(200).json(Oldgame);
-    }
     const room = await Room.findOne({ roomId: roomId }).populate("players");
-    console.log("Room", room);
     const players = room.players.map((player) => player.guestId);
-    console.log("players", players);
-    const playersBalances = players.reduce((acc, guestId) => {
-      acc[guestId] = 500;
-      return acc;
-    }, {});
-    let playerCards = new Map();
-    let playersStatus = new Map();
+
+    let playersBalances = {};
+    let playersCards = {};
+    let playersStatus = {};
+    let playersBids = {};
     let cardIndex = 0;
     for (let playerId of players) {
-      playerCards.set(playerId, [
+      playersCards[playerId] = [
         shuffledDeck[cardIndex++],
         shuffledDeck[cardIndex++],
-      ]);
-      playersStatus.set(playerId, true);
+      ];
+      playersStatus[playerId] = true;
+      playersBalances[playerId] = 500;
+      playersBids[playerId] = 0;
     }
-    console.log("playerstatus", playersStatus);
 
     let pokerCards = [];
     for (let i = 0; i < 5; i++) {
@@ -45,9 +39,10 @@ export const startGame = async (req, res) => {
 
     const game = new Game({
       roomId: roomId,
-      playerCards: playerCards,
+      playersCards: playersCards,
       pokerCards: pokerCards,
       playersBalances: playersBalances,
+      playersBids: playersBids,
       playerTurn: players[1],
       currentDealer: players[0],
       currentSmallBlind: players[1],
@@ -58,7 +53,32 @@ export const startGame = async (req, res) => {
     await game.save();
     res.status(200).json(game);
   } catch (error) {
-    console.error(error); // Log the error for debugging
+    console.error(error);
     res.status(500).json({ message: "Error creating a game" });
+  }
+};
+
+export const getGame = async (req, res) => {
+  const { roomId, guestId } = req.query;
+  try {
+    const game = await Game.findOne({ roomId: roomId });
+    const playerGame = {
+      potBalance: game.potBalance,
+      currentBid: game.currentBid,
+      playerBid: game.playersBids[guestId],
+      playerCards: game.playersCards[guestId],
+      pokerCards: game.pokerCards,
+      playersBalances: game.playersBalances,
+      isPlayerTurn: game.playerTurn === guestId,
+      isDealer: game.currentDealer === guestId,
+      isSmallBlind: game.currentSmallBlind === guestId,
+      isBigBlind: game.currentBigBlind === guestId,
+      playerStatus: game.playersStatus[guestId],
+    };
+
+    res.status(200).json(playerGame);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error fetching a game" });
   }
 };
