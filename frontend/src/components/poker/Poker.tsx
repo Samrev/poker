@@ -7,6 +7,7 @@ import PlayerRole from "../../strings";
 import { toast, ToastContainer } from "react-toastify"; // Import ToastContainer
 import "react-toastify/dist/ReactToastify.css";
 import { usePoker } from "./hooks/usePoker";
+import { checkGame } from "../../api/game";
 
 const Poker: React.FC = () => {
   const navigate = useNavigate();
@@ -65,7 +66,8 @@ const Poker: React.FC = () => {
   const isRaiseEnabled =
     playerData.isPlayerTurn && playerData.playerStatus && hasBalanceToRaise;
 
-  const isAllInEnabled = playerData.isPlayerTurn && playerData.playerStatus;
+  const isAllInEnabled =
+    !hasBalanceToCheck && playerData.isPlayerTurn && playerData.playerStatus;
 
   const handleShowBalances = () => {
     setShowBalancesModal(true);
@@ -75,13 +77,24 @@ const Poker: React.FC = () => {
     setShowBalancesModal(false);
   };
 
-  const handleCheck = () => {
-    toast.info("Player checked", {
-      autoClose: 3000,
-      hideProgressBar: true,
-      closeOnClick: true,
-      pauseOnHover: true,
-    });
+  const handleCheck = async () => {
+    try {
+      console.log("Player checked");
+      await checkGame(roomId, guestId);
+      toast.info("Player checked", {
+        autoClose: 3000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+      });
+    } catch (error) {
+      toast.error("Failed to check the game. Please try again.", {
+        autoClose: 3000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+      });
+    }
   };
 
   const handleFold = () => {
@@ -96,6 +109,7 @@ const Poker: React.FC = () => {
       pauseOnHover: true,
     });
   };
+  const handleAllIn = () => {};
 
   const mainDeck = "card back black";
   const hiddenPokerCards = "card back orange";
@@ -147,7 +161,9 @@ const Poker: React.FC = () => {
           </div>
         </div>
         <div className="player-title">
-          <h3>{getTitle}</h3>
+          <h3>
+            {getTitle}-{guestId}
+          </h3>
         </div>
       </div>
 
@@ -175,7 +191,7 @@ const Poker: React.FC = () => {
         </button>
         <button
           className="action-button all-in"
-          onClick={handleRaise}
+          onClick={handleAllIn}
           disabled={!isAllInEnabled}
         >
           All In

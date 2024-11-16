@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 
 const gameSchema = new mongoose.Schema({
+  //TODO: make room as a ref
   roomId: {
     type: String,
     required: true,
@@ -44,6 +45,13 @@ const gameSchema = new mongoose.Schema({
     },
     required: true,
   },
+  contributedPlayersBids: {
+    type: Object,
+    of: {
+      type: Number,
+    },
+    required: true,
+  },
   playersStatus: {
     type: Object,
     of: {
@@ -64,6 +72,21 @@ const gameSchema = new mongoose.Schema({
     required: true,
   },
   currentSmallBlind: {
+    type: String,
+    required: true,
+  },
+  nextTurn: {
+    type: Object,
+    of: {
+      type: String,
+    },
+    required: true,
+  },
+  roundNo: {
+    type: Number,
+    default: 0,
+  },
+  lastPlayer: {
     type: String,
     required: true,
   },

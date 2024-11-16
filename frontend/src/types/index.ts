@@ -39,4 +39,8 @@ export interface PlayerGameData {
   isSmallBlind: boolean;
   isBigBlind: boolean;
   playerStatus: boolean;
+  nextTurn: Record<string, string>;
+  roundNo: number;
+  lastPlayer: string;
+  contributedPlayersBids: Record<string, number>;
 }
