@@ -95,150 +95,222 @@ export const getGame = async (req, res) => {
     res.status(500).json({ message: "Error fetching a game" });
   }
 };
-export const resetGame = async (req, res) => {
-  const { roomId } = req.query;
-  const shuffledDeck = shuffle(deck);
-  const game = await Game.findOne({ roomId: roomId });
-  let cardIndex = 0;
-
-  let playersCards = {};
-  let playersStatus = {};
-  let playersBids = {};
-  let contributedPlayersBids = {};
-  const currentDealer = game.nextTurn[game.currentDealer];
-  const currentSmallBlind = game.nextTurn[currentDealer];
-  const currentBigBlind = game.nextTurn[currentSmallBlind];
-  for (let playerId of players) {
-    playersCards[playerId] = [
-      shuffledDeck[cardIndex++],
-      shuffledDeck[cardIndex++],
-    ];
-    playersStatus[playerId] = true;
-    playersBids[playerId] = 0;
-    contributedPlayersBids[playerId] = 0;
-  }
-
-  let pokerCards = [];
-  for (let i = 0; i < 5; i++) {
-    pokerCards.push(shuffledDeck[cardIndex++]);
-  }
-  await Game.findOneAndUpdate(
-    {
-      roomId: roomId,
-    },
-    {
-      $set: {
-        playersCards: playersCards,
-        pokerCards: pokerCards,
-        pokerCards: 0,
-        playerTurn: currentSmallBlind,
-        playersBids: playersBids,
-        contributedPlayersBids: contributedPlayersBids,
-        playersStatus: playersStatus,
-        currentBid: 0,
-        currentDealer: currentDealer,
-        currentSmallBlind: currentSmallBlind,
-        currentBigBlind: currentBigBlind,
-        roundNo: 0,
-        lastPlayer: currentDealer,
-      },
-    }
-  );
-};
 
 export const checkGame = async (req, res) => {
-  const { roomId } = req.query;
-  let { guestId } = req.query;
-  const game = await Game.findOneAndUpdate({ roomId: roomId });
-  while (!game.playersStatus[game.nextTurn[guestId]]) {
-    guestId = game.nextTurn[guestId];
-  }
-  console.log("inside check controller");
-  const nextTurnGuestId = game.nextTurn[guestId];
-  await Game.findOneAndUpdate(
-    { roomId: roomId },
-    {
-      $inc: {
-        [`playersBalances.${guestId}`]: -game.currentBid,
-        potBalance: game.currentBid,
-        roundNo: guestId === game.lastPlayer ? 1 : 0,
-        [`contributedPlayersBids.${guestId}`]: game.currentBid,
-      },
-      $set: {
-        playerTurn: nextTurnGuestId,
-        [`playersBids.${guestId}`]: game.currentBid,
-      },
+  try {
+    const { roomId } = req.query;
+    let { guestId } = req.query;
+
+    const game = await Game.findOneAndUpdate({ roomId: roomId });
+    if (!game) {
+      return res.status(404).json({ error: "Game not found" });
     }
-  );
-  console.log("player checked");
+
+    while (!game.playersStatus[game.nextTurn[guestId]]) {
+      guestId = game.nextTurn[guestId];
+    }
+
+    const nextTurnGuestId = game.nextTurn[guestId];
+
+    const updatedGame = await Game.findOneAndUpdate(
+      { roomId: roomId },
+      {
+        $inc: {
+          [`playersBalances.${guestId}`]: -game.currentBid,
+          potBalance: game.currentBid,
+          roundNo: guestId === game.lastPlayer ? 1 : 0,
+          [`contributedPlayersBids.${guestId}`]: game.currentBid,
+        },
+        $set: {
+          playerTurn: nextTurnGuestId,
+          [`playersBids.${guestId}`]: game.currentBid,
+        },
+      },
+      { new: true }
+    );
+
+    if (!updatedGame) {
+      return res.status(500).json({ error: "Failed to update the game state" });
+    }
+
+    res.status(200).json({ message: "Check action completed successfully" });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ error: "An error occurred during the check action" });
+  }
 };
 
 export const raiseGame = async (req, res) => {
-  const { roomId, bid } = req.query;
-  let { guestId } = req.query;
-  const game = await Game.findOneAndUpdate({ roomId: roomId });
-  while (!game.playersStatus[game.nextTurn[guestId]]) {
-    guestId = game.nextTurn[guestId];
-  }
-  const nextTurnGuestId = game.nextTurn[guestId];
-  await Game.findOneAndUpdate(
-    { roomId: roomId },
-    {
-      $inc: {
-        [`playersBalances.${guestId}`]: -bid,
-        potBalance: bid,
-        [`contributedPlayersBids.${guestId}`]: bid,
-      },
-      $set: {
-        playerTurn: nextTurnGuestId,
-        [`playersBids.${guestId}`]: bid,
-        lastPlayer: guestId,
-      },
+  try {
+    const { roomId, bid } = req.query;
+    let { guestId } = req.query;
+    const game = await Game.findOneAndUpdate({ roomId: roomId });
+
+    if (!game) {
+      return res.status(404).json({ error: "Game not found" });
     }
-  );
+
+    while (!game.playersStatus[game.nextTurn[guestId]]) {
+      guestId = game.nextTurn[guestId];
+    }
+
+    const nextTurnGuestId = game.nextTurn[guestId];
+    await Game.findOneAndUpdate(
+      { roomId: roomId },
+      {
+        $inc: {
+          [`playersBalances.${guestId}`]: -bid,
+          potBalance: bid,
+          [`contributedPlayersBids.${guestId}`]: bid,
+        },
+        $set: {
+          playerTurn: nextTurnGuestId,
+          [`playersBids.${guestId}`]: bid,
+          lastPlayer: guestId,
+        },
+      }
+    );
+
+    res.status(200).json({ message: "Raise action completed successfully" });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ error: "An error occurred during the raise action" });
+  }
 };
 
 export const foldGame = async (req, res) => {
-  const { roomId } = req.query;
-  let { guestId } = req.query;
-  const game = await Game.findOneAndUpdate({ roomId: roomId });
-  while (!game.playersStatus[game.nextTurn[guestId]]) {
-    guestId = game.nextTurn[guestId];
-  }
-  const nextTurnGuestId = game.nextTurn[guestId];
-  await Game.findOneAndUpdate(
-    { roomId: roomId },
-    {
-      $inc: {
-        roundNo: guestId === game.lastPlayer ? 1 : 0,
-      },
-      $set: {
-        [`playersStatus.${guestId}`]: false,
-        playerTurn: nextTurnGuestId,
-      },
+  try {
+    const { roomId } = req.query;
+    let { guestId } = req.query;
+    const game = await Game.findOneAndUpdate({ roomId: roomId });
+
+    if (!game) {
+      return res.status(404).json({ error: "Game not found" });
     }
-  );
+
+    while (!game.playersStatus[game.nextTurn[guestId]]) {
+      guestId = game.nextTurn[guestId];
+    }
+
+    const nextTurnGuestId = game.nextTurn[guestId];
+    await Game.findOneAndUpdate(
+      { roomId: roomId },
+      {
+        $inc: {
+          roundNo: guestId === game.lastPlayer ? 1 : 0,
+        },
+        $set: {
+          [`playersStatus.${guestId}`]: false,
+          playerTurn: nextTurnGuestId,
+        },
+      }
+    );
+
+    res.status(200).json({ message: "Fold action completed successfully" });
+  } catch (error) {
+    res.status(500).json({ error: "An error occurred during the fold action" });
+  }
 };
 
 export const allInGame = async (req, res) => {
-  const { roomId } = req.query;
-  let { guestId } = req.query;
-  const game = await Game.findOneAndUpdate({ roomId: roomId });
-  while (!game.playersStatus[game.nextTurn[guestId]]) {
-    guestId = game.nextTurn[guestId];
-  }
-  const nextTurnGuestId = game.nextTurn[guestId];
-  await Game.findOneAndUpdate(
-    { roomId: roomId },
-    {
-      $inc: {
-        roundNo: guestId === game.lastPlayer ? 1 : 0,
-        [`contributedPlayersBids.${guestId}`]: [`playersBalances.${guestId}`],
-      },
-      $set: {
-        playerTurn: nextTurnGuestId,
-        [`playersBalances.${guestId}`]: 0,
-      },
+  try {
+    const { roomId } = req.query;
+    let { guestId } = req.query;
+    const game = await Game.findOneAndUpdate({ roomId: roomId });
+
+    if (!game) {
+      return res.status(404).json({ error: "Game not found" });
     }
-  );
+
+    while (!game.playersStatus[game.nextTurn[guestId]]) {
+      guestId = game.nextTurn[guestId];
+    }
+
+    const nextTurnGuestId = game.nextTurn[guestId];
+    const playerBalance = game.playersBalances[guestId];
+
+    await Game.findOneAndUpdate(
+      { roomId: roomId },
+      {
+        $inc: {
+          roundNo: guestId === game.lastPlayer ? 1 : 0,
+          [`contributedPlayersBids.${guestId}`]: playerBalance,
+        },
+        $set: {
+          playerTurn: nextTurnGuestId,
+          [`playersBalances.${guestId}`]: 0,
+        },
+      }
+    );
+
+    res.status(200).json({ message: "All-in action completed successfully" });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ error: "An error occurred during the all-in action" });
+  }
+};
+
+export const resetGame = async (req, res) => {
+  try {
+    const { roomId } = req.query;
+    const shuffledDeck = shuffle(deck);
+    const game = await Game.findOne({ roomId: roomId });
+
+    if (!game) {
+      return res.status(404).json({ error: "Game not found" });
+    }
+
+    let cardIndex = 0;
+    let playersCards = {};
+    let playersStatus = {};
+    let playersBids = {};
+    let contributedPlayersBids = {};
+    const currentDealer = game.nextTurn[game.currentDealer];
+    const currentSmallBlind = game.nextTurn[currentDealer];
+    const currentBigBlind = game.nextTurn[currentSmallBlind];
+
+    for (let playerId of game.players) {
+      playersCards[playerId] = [
+        shuffledDeck[cardIndex++],
+        shuffledDeck[cardIndex++],
+      ];
+      playersStatus[playerId] = true;
+      playersBids[playerId] = 0;
+      contributedPlayersBids[playerId] = 0;
+    }
+
+    let pokerCards = [];
+    for (let i = 0; i < 5; i++) {
+      pokerCards.push(shuffledDeck[cardIndex++]);
+    }
+
+    await Game.findOneAndUpdate(
+      { roomId: roomId },
+      {
+        $set: {
+          playersCards: playersCards,
+          pokerCards: pokerCards,
+          currentBid: 0,
+          playerTurn: currentSmallBlind,
+          playersBids: playersBids,
+          contributedPlayersBids: contributedPlayersBids,
+          playersStatus: playersStatus,
+          currentDealer: currentDealer,
+          currentSmallBlind: currentSmallBlind,
+          currentBigBlind: currentBigBlind,
+          roundNo: 0,
+          lastPlayer: currentDealer,
+        },
+      }
+    );
+
+    res.status(200).json({ message: "Game has been reset successfully" });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ error: "An error occurred while resetting the game" });
+  }
 };

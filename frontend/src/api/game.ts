@@ -77,7 +77,7 @@ export const checkGame = async (
 export const raiseGame = async (
   roomId: string | undefined,
   guestId: string | undefined
-): Promise<void> => {
+): Promise<any> => {
   try {
     const server = process.env.REACT_APP_API_URL;
     if (!server) {
@@ -103,7 +103,7 @@ export const raiseGame = async (
 export const allInGame = async (
   roomId: string | undefined,
   guestId: string | undefined
-): Promise<void> => {
+): Promise<any> => {
   try {
     const server = process.env.REACT_APP_API_URL;
     if (!server) {
@@ -129,7 +129,7 @@ export const allInGame = async (
 export const foldGame = async (
   roomId: string | undefined,
   guestId: string | undefined
-): Promise<void> => {
+): Promise<any> => {
   try {
     const server = process.env.REACT_APP_API_URL;
     if (!server) {
@@ -155,7 +155,7 @@ export const foldGame = async (
 export const resetGame = async (
   roomId: string | undefined,
   guestId: string | undefined
-): Promise<void> => {
+): Promise<any> => {
   try {
     const server = process.env.REACT_APP_API_URL;
     if (!server) {

@@ -6,10 +6,15 @@ export const usePoker = (
   roomId: string | undefined,
   guestId: string | undefined
 ) => {
+  const [refreshTrigger, setRefreshTrigger] = useState(false);
   const [playerData, setplayerData] = useState<PlayerGameData | undefined>(
     undefined
   );
   const [error, setError] = useState<string | null>(null);
+
+  const refetch = () => {
+    setRefreshTrigger((prev) => !prev);
+  };
 
   useEffect(() => {
     const fetchplayerData = async () => {
@@ -25,11 +30,11 @@ export const usePoker = (
     if (roomId && guestId) {
       fetchplayerData();
     }
-  }, [roomId, guestId]);
+  }, [roomId, guestId, refreshTrigger]);
 
   useEffect(() => {
     console.log("Updated playerData:", playerData);
   }, [playerData]);
 
-  return { playerData, error };
+  return { playerData, error, refetch };
 };
