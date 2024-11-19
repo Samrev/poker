@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { getGame } from "../../../api/game";
-import { PlayerGameData } from "../../../types";
+import { PlayerGameData } from "../types";
+import { getGame } from "../api/game";
 
 export const usePoker = (
   roomId: string | undefined,

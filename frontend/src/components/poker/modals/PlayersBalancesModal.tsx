@@ -1,6 +1,6 @@
 import React from "react";
-import "../../styles/PlayersBalancesModal.css";
-import { PlayersBalancesModalProps } from "../../types";
+import "../../../styles/PlayersBalancesModal.css";
+import { PlayersBalancesModalProps } from "../../../types";
 
 const PlayersBalancesModal: React.FC<PlayersBalancesModalProps> = ({
   playersBalances,

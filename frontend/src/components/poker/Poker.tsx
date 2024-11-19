@@ -1,14 +1,15 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import "../../styles/Poker.css";
 import { useLocation, useNavigate } from "react-router-dom";
-import PlayersBalancesModal from "./PlayersBalancesModal";
+import PlayersBalancesModal from "./modals/PlayersBalancesModal";
 import CardDisplay from "./CardDisplay";
-import PlayerRole from "../../strings";
 import { toast, ToastContainer } from "react-toastify"; // Import ToastContainer
 import "react-toastify/dist/ReactToastify.css";
-import { usePoker } from "./hooks/usePoker";
 import { allInGame, checkGame, foldGame, raiseGame } from "../../api/game";
 import { io } from "socket.io-client";
+import { usePoker } from "../../hooks/usePoker";
+import { getTitle } from "../../utils/cardUtils";
+import { showErrorToast, showSuccessToast } from "../../utils/toastUtils";
 
 const socket = io(process.env.REACT_APP_API_URL);
 
@@ -27,15 +28,7 @@ const Poker: React.FC = () => {
   const { playerData, error, refetch } = usePoker(roomId, guestId);
   const roundCount = useRef(0);
   const [showBalancesModal, setShowBalancesModal] = useState<boolean>(false);
-  const getTitle = useMemo(() => {
-    return playerData?.isDealer
-      ? PlayerRole.dealer
-      : playerData?.isSmallBlind
-        ? PlayerRole.smallBlind
-        : playerData?.isBigBlind
-          ? PlayerRole.bigBlind
-          : PlayerRole.player;
-  }, [playerData]);
+  const title = useMemo(() => getTitle(playerData), [playerData]);
 
   console.log("playerData", playerData);
 
@@ -60,11 +53,10 @@ const Poker: React.FC = () => {
     isNotBlind && playerData.playerStatus && playerData.isPlayerTurn;
 
   const isCheckEnabled =
-    true ||
-    (isNotBlind &&
-      playerData?.playerStatus &&
-      playerData?.isPlayerTurn &&
-      hasBalanceToCheck);
+    isNotBlind &&
+    playerData?.playerStatus &&
+    playerData?.isPlayerTurn &&
+    hasBalanceToCheck;
 
   const isRaiseEnabled =
     playerData.isPlayerTurn && playerData.playerStatus && hasBalanceToRaise;
@@ -83,79 +75,39 @@ const Poker: React.FC = () => {
   const handleCheck = async () => {
     try {
       await checkGame(roomId, guestId);
-      toast.info("Player checked", {
-        autoClose: 3000,
-        hideProgressBar: true,
-        closeOnClick: true,
-        pauseOnHover: true,
-      });
+      showSuccessToast("Player checked");
       socket.emit("playerMoved");
     } catch (error) {
-      toast.error("Failed to check the game. Please try again.", {
-        autoClose: 3000,
-        hideProgressBar: true,
-        closeOnClick: true,
-        pauseOnHover: true,
-      });
+      showErrorToast("Failed to check the game. Please try again.");
     }
   };
 
   const handleFold = async () => {
     try {
       await foldGame(roomId, guestId);
-      toast.info("Player folded", {
-        autoClose: 3000,
-        hideProgressBar: true,
-        closeOnClick: true,
-        pauseOnHover: true,
-      });
+      showSuccessToast("Player folded");
       socket.emit("playerMoved");
     } catch (error) {
-      toast.error("Failed to fold the game. Please try again.", {
-        autoClose: 3000,
-        hideProgressBar: true,
-        closeOnClick: true,
-        pauseOnHover: true,
-      });
+      showErrorToast("Failed to fold the game. Please try again.");
     }
   };
 
   const handleRaise = async () => {
     try {
       await raiseGame(roomId, guestId);
-      toast.info("Player raised", {
-        autoClose: 3000,
-        hideProgressBar: true,
-        closeOnClick: true,
-        pauseOnHover: true,
-      });
+      showSuccessToast("Player raised");
       socket.emit("playerMoved");
     } catch (error) {
-      toast.error("Failed to raise the game. Please try again.", {
-        autoClose: 3000,
-        hideProgressBar: true,
-        closeOnClick: true,
-        pauseOnHover: true,
-      });
+      showErrorToast("Failed to raise the game. Please try again.");
     }
   };
   const handleAllIn = async () => {
     try {
       await allInGame(roomId, guestId);
-      toast.info("Player all In", {
-        autoClose: 3000,
-        hideProgressBar: true,
-        closeOnClick: true,
-        pauseOnHover: true,
-      });
+      showSuccessToast("Player All In");
       socket.emit("playerMoved");
     } catch (error) {
-      toast.error("Failed to all In the game. Please try again.", {
-        autoClose: 3000,
-        hideProgressBar: true,
-        closeOnClick: true,
-        pauseOnHover: true,
-      });
+      showErrorToast("Failed to all In the game. Please try again.");
     }
   };
 
@@ -210,7 +162,7 @@ const Poker: React.FC = () => {
         </div>
         <div className="player-title">
           <h3>
-            {getTitle}-{guestId}
+            {title}-{guestId}
           </h3>
         </div>
       </div>
