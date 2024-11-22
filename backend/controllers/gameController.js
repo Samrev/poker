@@ -88,7 +88,7 @@ export const getGame = async (req, res) => {
       lastPlayer: game.lastPlayer,
       contributedPlayersBids: game.contributedPlayersBids,
     };
-    console.log("got the game");
+    console.log(`got the game in ${roomId}`);
     res.status(200).json(playerGame);
   } catch (error) {
     console.error(error);
@@ -100,8 +100,8 @@ export const checkGame = async (req, res) => {
   try {
     const { roomId } = req.query;
     let { guestId } = req.query;
-
     const game = await Game.findOneAndUpdate({ roomId: roomId });
+
     if (!game) {
       return res.status(404).json({ error: "Game not found" });
     }
@@ -111,7 +111,6 @@ export const checkGame = async (req, res) => {
     }
 
     const nextTurnGuestId = game.nextTurn[guestId];
-
     const updatedGame = await Game.findOneAndUpdate(
       { roomId: roomId },
       {
@@ -132,7 +131,6 @@ export const checkGame = async (req, res) => {
     if (!updatedGame) {
       return res.status(500).json({ error: "Failed to update the game state" });
     }
-
     res.status(200).json({ message: "Check action completed successfully" });
   } catch (error) {
     res

@@ -19,11 +19,6 @@ export interface CreateRoomModalProps {
   guestId: string;
 }
 
-export interface PlayersBalancesModalProps {
-  playersBalances: Record<string, number>;
-  handleCloseButton: () => void;
-}
-
 export interface CardDisplayProps {
   card: string;
 }

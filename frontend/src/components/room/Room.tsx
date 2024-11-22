@@ -10,10 +10,8 @@ import {
   FaUserCircle,
 } from "react-icons/fa";
 import { leaveRoom, toggleReadyPlayer } from "../../api/players";
-import { io } from "socket.io-client";
 import { startGame } from "../../api/game";
-
-const socket = io(process.env.REACT_APP_API_URL);
+import socket from "../../utils/socketInstance";
 
 const Room: React.FC = () => {
   const location = useLocation();
@@ -41,7 +39,7 @@ const Room: React.FC = () => {
     setStartButtonEnabled(allPlayersReady && allPlayersIn);
   };
 
-  // Fetch room details and players
+  // TODO : refactor into useRoom
   const fetchRoomData = useCallback(async () => {
     try {
       const room = await getRoom(roomId);
@@ -82,24 +80,20 @@ const Room: React.FC = () => {
 
   useEffect(() => {
     fetchRoomData();
+    //TODO: change to one event
 
-    socket.on("readyStatusChanged", fetchRoomData);
-    socket.on("playerJoined", fetchRoomData);
-    socket.on("playerLeft", fetchRoomData);
+    socket.on("roomStatusChanged", fetchRoomData);
     socket.on("gameStarted", () => {
       navigate("/poker", { state: { roomId, guestId } });
     });
 
     return () => {
-      socket.off("readyStatusChanged");
-      socket.off("playerJoined");
-      socket.off("playerLeft");
+      socket.off("roomStatusChanged");
     };
   }, [fetchRoomData, roomId, guestId, navigate]);
 
   const isHost = players.length > 0 && players[0].guestId === guestId;
 
-  // Create an array for the player blocks (fixed size based on maxNumberOfPlayers)
   const playerBlocks = Array.from(
     { length: maxNumberOfPlayers },
     (_, index) => {

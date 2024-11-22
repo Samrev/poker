@@ -1,6 +1,10 @@
 import React from "react";
 import "../../../styles/PlayersBalancesModal.css";
-import { PlayersBalancesModalProps } from "../../../types";
+
+interface PlayersBalancesModalProps {
+  playersBalances: Record<string, number>;
+  handleCloseButton: () => void;
+}
 
 const PlayersBalancesModal: React.FC<PlayersBalancesModalProps> = ({
   playersBalances,

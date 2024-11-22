@@ -1,4 +1,4 @@
-import PlayerRole from "../strings";
+import { PlayerRole } from "../strings";
 import { PlayerGameData } from "../types";
 
 export const getTitle = (playerData: PlayerGameData | undefined): string => {

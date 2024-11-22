@@ -28,7 +28,7 @@ const server = app.listen(PORT, () => {
 const io = new Server(server, {
   cors: {
     origin: process.env.FRONTEND_URL,
-    methods: ["GET", "POST"],
+    methods: ["GET", "POST", "PUT"],
   },
 });
 socketHandler(io);

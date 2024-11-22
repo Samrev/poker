@@ -62,8 +62,8 @@ export const checkGame = async (
     const res = await axios.put(`${server}/api/games/check`, null, {
       params: { roomId, guestId },
     });
-
     if (res.status === 200) {
+      console.log("check successful");
       return res.data;
     } else {
       throw new Error("Failed to check the game");
@@ -76,7 +76,8 @@ export const checkGame = async (
 
 export const raiseGame = async (
   roomId: string | undefined,
-  guestId: string | undefined
+  guestId: string | undefined,
+  bid: number
 ): Promise<any> => {
   try {
     const server = process.env.REACT_APP_API_URL;
@@ -87,6 +88,7 @@ export const raiseGame = async (
       params: {
         roomId: roomId,
         guestId: guestId,
+        bid: bid,
       },
     });
 
