@@ -11,7 +11,7 @@ import {
 } from "react-icons/fa";
 import { leaveRoom, toggleReadyPlayer } from "../../api/players";
 import { startGame } from "../../api/game";
-import socket from "../../utils/socketInstance";
+import { socketRoom } from "../../utils/socketInstance";
 
 const Room: React.FC = () => {
   const location = useLocation();
@@ -23,7 +23,7 @@ const Room: React.FC = () => {
     if (!guestId || !roomId) {
       navigate("/");
     }
-    socket.emit("joinRoom", { roomId, guestId });
+    socketRoom.emit("joinRoom", { roomId, guestId });
   }, [guestId, roomId, navigate]);
 
   const [players, setPlayers] = useState<Player[]>([]);
@@ -56,7 +56,7 @@ const Room: React.FC = () => {
   const handlePlayerReady = async () => {
     try {
       await toggleReadyPlayer(guestId);
-      socket.emit("toogleReadinessStatus", { roomId, guestId });
+      socketRoom.emit("toogleReadinessStatus", { roomId, guestId });
     } catch (error) {
       console.error("Failed to toggle player readiness", error);
     }
@@ -65,7 +65,7 @@ const Room: React.FC = () => {
   const handleLeaveRoom = async () => {
     try {
       await leaveRoom(roomId, guestId);
-      socket.emit("leaveRoom", { roomId, guestId });
+      socketRoom.emit("leaveRoom", { roomId, guestId });
       navigate("/");
     } catch (error) {
       console.error("Failed to leave room", error);
@@ -74,7 +74,7 @@ const Room: React.FC = () => {
 
   const handleStartGame = async () => {
     await startGame(roomId);
-    socket.emit("startGame", { roomId });
+    socketRoom.emit("startGame", { roomId });
     navigate("/poker", { state: { roomId, guestId } });
   };
 
@@ -82,13 +82,15 @@ const Room: React.FC = () => {
     fetchRoomData();
     //TODO: change to one event
 
-    socket.on("roomStatusChanged", fetchRoomData);
-    socket.on("gameStarted", () => {
+    socketRoom.on("roomStatusChanged", fetchRoomData);
+    socketRoom.on("gameStarted", () => {
+      socketRoom.disconnect();
       navigate("/poker", { state: { roomId, guestId } });
     });
 
     return () => {
-      socket.off("roomStatusChanged");
+      socketRoom.off("roomStatusChanged");
+      socketRoom.off("gameStarted");
     };
   }, [fetchRoomData, roomId, guestId, navigate]);
 

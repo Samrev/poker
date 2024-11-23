@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { PlayerGameData } from "../../../types";
 import { raiseGame } from "../../../api/game";
 import { showErrorToast, showSuccessToast } from "../../../utils/toastUtils";
-import socket from "../../../utils/socketInstance";
+import { socketPoker } from "../../../utils/socketInstance";
 interface PlayerRaiseModalProps {
   playerData: PlayerGameData;
   guestId: string;
@@ -21,7 +21,7 @@ const PlayerRaiseModal: React.FC<PlayerRaiseModalProps> = ({
     try {
       await raiseGame(roomId, guestId, raiseAmount);
       showSuccessToast(`Player raised $${raiseAmount}`);
-      socket.emit("playerMoved", { roomId });
+      socketPoker.emit("playerMoved", { roomId });
       handleCloseRaiseModal();
     } catch (error) {
       showErrorToast("Failed to raise the game. Please try again.");

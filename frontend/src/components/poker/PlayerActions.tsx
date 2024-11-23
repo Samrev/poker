@@ -3,9 +3,8 @@ import { PlayerGameData } from "../../types";
 import { allInGame, checkGame, foldGame } from "../../api/game";
 import { showErrorToast, showSuccessToast } from "../../utils/toastUtils";
 import PlayerRaiseModal from "./modals/PlayerRaiseModal";
-import socket from "../../utils/socketInstance";
+import { socketPoker } from "../../utils/socketInstance";
 
-//take socket from a room
 // import "./PlayerActions.css";
 
 interface PlayerActionsProps {
@@ -58,7 +57,7 @@ const PlayerActions: React.FC<PlayerActionsProps> = ({
     try {
       await checkGame(roomId, guestId);
       showSuccessToast("Player checked");
-      socket.emit("playerMoved", { roomId });
+      socketPoker.emit("playerMoved", { roomId });
     } catch (error) {
       showErrorToast("Failed to check the game. Please try again.");
     }
@@ -68,7 +67,7 @@ const PlayerActions: React.FC<PlayerActionsProps> = ({
     try {
       await foldGame(roomId, guestId);
       showSuccessToast("Player folded");
-      socket.emit("playerMoved", { roomId });
+      socketPoker.emit("playerMoved", { roomId });
     } catch (error) {
       showErrorToast("Failed to fold the game. Please try again.");
     }
@@ -78,14 +77,14 @@ const PlayerActions: React.FC<PlayerActionsProps> = ({
     try {
       await allInGame(roomId, guestId);
       showSuccessToast("Player All In");
-      socket.emit("playerMoved", { roomId });
+      socketPoker.emit("playerMoved", { roomId });
     } catch (error) {
       showErrorToast("Failed to all In the game. Please try again.");
     }
   };
 
   useEffect(() => {
-    socket.on("gameUpdated", () => {
+    socketPoker.on("gameUpdated", () => {
       console.log("game updated");
     });
   });

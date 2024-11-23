@@ -1,5 +1,5 @@
-const socketHandler = (io) => {
-  io.on("connection", (socket) => {
+const socketRoomHandler = (io) => {
+  io.of("/room").on("connection", (socket) => {
     console.log("a user connected", socket.id);
 
     socket.on("joinRoom", ({ roomId, guestId }) => {
@@ -16,7 +16,7 @@ const socketHandler = (io) => {
 
     socket.on("toogleReadinessStatus", ({ roomId, guestId }) => {
       console.log(`Guest ${guestId} in room ${roomId} has toggled readiness`);
-      io.to(roomId).emit("roomStatusChanged", { guestId });
+      io.of("/room").to(roomId).emit("roomStatusChanged", { guestId });
     });
 
     socket.on("startGame", ({ roomId }) => {
@@ -24,11 +24,24 @@ const socketHandler = (io) => {
       socket.to(roomId).emit("gameStarted", { roomId });
     });
 
-    socket.on("playerMoved", ({ roomId }) => {
-      console.log(`player has moved his turn in room ${roomId}`);
-      io.to(roomId).emit("gameUpdated", { roomId });
+    socket.on("disconnect", () => {
+      console.log(`User disconnected: ${socket.id}`);
     });
   });
 };
 
-export default socketHandler;
+const socketPokerHandler = (io) => {
+  io.of("/poker").on("connection", (socket) => {
+    console.log("a user connected in poker", socket.id);
+
+    socket.on("joinPoker", ({ roomId, guestId }) => {
+      console.log(`Guest ${guestId} is joining poker ${roomId}`);
+      socket.join(roomId);
+    });
+
+    socket.on("playerMoved", ({ roomId, guestId }) => {
+      console.log(`Guest ${guestId} is made his move in ${roomId}`);
+      socket.to(roomId).emit("pokerStatusChanged", { guestId });
+    });
+  });
+};

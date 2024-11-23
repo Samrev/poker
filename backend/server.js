@@ -6,7 +6,7 @@ import gameRoutes from "./routes/gameRoutes.js";
 import connectDB from "./connect.js";
 import dotenv from "dotenv";
 import { Server } from "socket.io";
-import socketHandler from "./sockets.js";
+import socketRoomHandler from "./sockets.js";
 
 dotenv.config();
 const PORT = process.env.PORT || 3000;
@@ -27,8 +27,8 @@ const server = app.listen(PORT, () => {
 
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_URL,
+    origin: `${process.env.FRONTEND_URL}`,
     methods: ["GET", "POST", "PUT"],
   },
 });
-socketHandler(io);
+socketRoomHandler(io);
