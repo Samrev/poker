@@ -8,6 +8,7 @@ import { usePoker } from "../../hooks/usePoker";
 import PokerTable from "./PokerTable";
 import PlayerSection from "./PlayerSection";
 import PlayerActions from "./PlayerActions";
+import { socketPoker } from "../../utils/socketInstance";
 
 const Poker: React.FC = () => {
   const navigate = useNavigate();
@@ -18,12 +19,11 @@ const Poker: React.FC = () => {
     if (!guestId || !roomId) {
       navigate("/");
     }
+    socketPoker.emit("joinPoker", { roomId, guestId });
   }, [guestId, roomId, navigate]);
 
   const { playerData, error, refetch } = usePoker(roomId, guestId);
   const [showBalancesModal, setShowBalancesModal] = useState<boolean>(false);
-
-  console.log("playerData", playerData);
 
   if (error) {
     console.error("Error fetching game data:", error);

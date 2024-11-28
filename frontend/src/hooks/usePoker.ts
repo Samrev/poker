@@ -20,7 +20,6 @@ export const usePoker = (
     const fetchplayerData = async () => {
       try {
         const response = await getGame(roomId, guestId);
-        console.log(response);
         setplayerData(response as PlayerGameData);
       } catch (err) {
         setError("Failed to fetch game data");
@@ -31,10 +30,6 @@ export const usePoker = (
       fetchplayerData();
     }
   }, [roomId, guestId, refreshTrigger]);
-
-  useEffect(() => {
-    console.log("Updated playerData:", playerData);
-  }, [playerData]);
 
   return { playerData, error, refetch };
 };

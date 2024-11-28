@@ -22,6 +22,11 @@ export interface CreateRoomModalProps {
 export interface CardDisplayProps {
   card: string;
 }
+export interface RoomData {
+  roomId: string;
+  numberOfPlayers: number;
+  maxNumberOfPlayers: number;
+}
 export interface PlayerGameData {
   potBalance: number;
   currentBid: number;

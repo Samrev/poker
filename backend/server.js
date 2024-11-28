@@ -6,7 +6,7 @@ import gameRoutes from "./routes/gameRoutes.js";
 import connectDB from "./connect.js";
 import dotenv from "dotenv";
 import { Server } from "socket.io";
-import socketRoomHandler from "./sockets.js";
+import { socketRoomHandler, socketPokerHandler } from "./sockets.js";
 
 dotenv.config();
 const PORT = process.env.PORT || 3000;
@@ -32,3 +32,4 @@ const io = new Server(server, {
   },
 });
 socketRoomHandler(io);
+socketPokerHandler(io);

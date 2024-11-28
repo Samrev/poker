@@ -21,15 +21,6 @@ const roomSchema = new mongoose.Schema({
       ref: "Player",
     },
   ],
-  isGameStarted: {
-    type: Boolean,
-    default: false,
-  },
-  Game: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Game",
-    default: null,
-  },
 });
 
 // Create and export the Room model

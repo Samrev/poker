@@ -84,7 +84,7 @@ export const raiseGame = async (
     if (!server) {
       throw new Error("API base URL is not defined");
     }
-    const res = await axios.put(`${server}/api/games/raise`, {
+    const res = await axios.put(`${server}/api/games/raise`, null, {
       params: {
         roomId: roomId,
         guestId: guestId,
@@ -93,6 +93,7 @@ export const raiseGame = async (
     });
 
     if (res.data && res.status === 200) {
+      console.log("check successful");
       return res.data;
     } else {
       console.error("Failed to raise");
@@ -111,7 +112,7 @@ export const allInGame = async (
     if (!server) {
       throw new Error("API base URL is not defined");
     }
-    const res = await axios.put(`${server}/api/games/allIn`, {
+    const res = await axios.put(`${server}/api/games/allIn`, null, {
       params: {
         roomId: roomId,
         guestId: guestId,
@@ -137,7 +138,7 @@ export const foldGame = async (
     if (!server) {
       throw new Error("API base URL is not defined");
     }
-    const res = await axios.put(`${server}/api/games/fold`, {
+    const res = await axios.put(`${server}/api/games/fold`, null, {
       params: {
         roomId: roomId,
         guestId: guestId,
@@ -163,7 +164,7 @@ export const resetGame = async (
     if (!server) {
       throw new Error("API base URL is not defined");
     }
-    const res = await axios.put(`${server}/api/games/reset`, {
+    const res = await axios.put(`${server}/api/games/reset`, null, {
       params: {
         guestId: guestId,
       },

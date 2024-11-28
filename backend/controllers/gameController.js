@@ -117,7 +117,7 @@ export const checkGame = async (req, res) => {
         $inc: {
           [`playersBalances.${guestId}`]: -game.currentBid,
           potBalance: game.currentBid,
-          roundNo: guestId === game.lastPlayer ? 1 : 0,
+          roundNo: nextTurnGuestId === game.lastPlayer ? 1 : 0,
           [`contributedPlayersBids.${guestId}`]: game.currentBid,
         },
         $set: {
@@ -133,6 +133,7 @@ export const checkGame = async (req, res) => {
     }
     res.status(200).json({ message: "Check action completed successfully" });
   } catch (error) {
+    console.log(error);
     res
       .status(500)
       .json({ error: "An error occurred during the check action" });
@@ -142,13 +143,14 @@ export const checkGame = async (req, res) => {
 export const raiseGame = async (req, res) => {
   try {
     const { roomId, bid } = req.query;
+
     let { guestId } = req.query;
+    const bidAsNumber = Number(bid);
     const game = await Game.findOneAndUpdate({ roomId: roomId });
 
     if (!game) {
       return res.status(404).json({ error: "Game not found" });
     }
-
     while (!game.playersStatus[game.nextTurn[guestId]]) {
       guestId = game.nextTurn[guestId];
     }
@@ -158,20 +160,22 @@ export const raiseGame = async (req, res) => {
       { roomId: roomId },
       {
         $inc: {
-          [`playersBalances.${guestId}`]: -bid,
+          [`playersBalances.${guestId}`]: -bidAsNumber,
           potBalance: bid,
-          [`contributedPlayersBids.${guestId}`]: bid,
+          [`contributedPlayersBids.${guestId}`]: bidAsNumber,
         },
         $set: {
           playerTurn: nextTurnGuestId,
-          [`playersBids.${guestId}`]: bid,
+          [`playersBids.${guestId}`]: bidAsNumber,
           lastPlayer: guestId,
+          currentBid: bidAsNumber,
         },
       }
     );
 
     res.status(200).json({ message: "Raise action completed successfully" });
   } catch (error) {
+    console.log(error);
     res
       .status(500)
       .json({ error: "An error occurred during the raise action" });
@@ -197,7 +201,7 @@ export const foldGame = async (req, res) => {
       { roomId: roomId },
       {
         $inc: {
-          roundNo: guestId === game.lastPlayer ? 1 : 0,
+          roundNo: nextTurnGuestId === game.lastPlayer ? 1 : 0,
         },
         $set: {
           [`playersStatus.${guestId}`]: false,
@@ -208,6 +212,7 @@ export const foldGame = async (req, res) => {
 
     res.status(200).json({ message: "Fold action completed successfully" });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ error: "An error occurred during the fold action" });
   }
 };
@@ -233,7 +238,7 @@ export const allInGame = async (req, res) => {
       { roomId: roomId },
       {
         $inc: {
-          roundNo: guestId === game.lastPlayer ? 1 : 0,
+          roundNo: nextTurnGuestId === game.lastPlayer ? 1 : 0,
           [`contributedPlayersBids.${guestId}`]: playerBalance,
         },
         $set: {
@@ -245,6 +250,7 @@ export const allInGame = async (req, res) => {
 
     res.status(200).json({ message: "All-in action completed successfully" });
   } catch (error) {
+    console.log(error);
     res
       .status(500)
       .json({ error: "An error occurred during the all-in action" });
@@ -307,6 +313,7 @@ export const resetGame = async (req, res) => {
 
     res.status(200).json({ message: "Game has been reset successfully" });
   } catch (error) {
+    console.log(error);
     res
       .status(500)
       .json({ error: "An error occurred while resetting the game" });
