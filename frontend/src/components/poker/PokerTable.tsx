@@ -9,9 +9,9 @@ interface PokerTableProps {
 const PokerTable: React.FC<PokerTableProps> = ({ playerData }) => {
   const isCardShown = (cardIndex: number) => {
     return (
-      cardIndex < 3 ||
-      (cardIndex === 3 && playerData.roundNo >= 1) ||
-      (cardIndex === 4 && playerData.roundNo >= 2)
+      (cardIndex < 3 && playerData.roundNo >= 1) ||
+      (cardIndex === 3 && playerData.roundNo >= 2) ||
+      (cardIndex === 4 && playerData.roundNo >= 3)
     );
   };
   return (

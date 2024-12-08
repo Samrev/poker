@@ -10,13 +10,13 @@ const incrementHexId = (hexId) => {
 export const createGuest = async (req, res) => {
   try {
     console.log("creating guest");
-    const lastPlayer = await Player.findOne({})
+    const firstPlayer = await Player.findOne({})
       .sort({ guestId: -1 })
       .limit(1)
       .exec();
     let newGuestId = "000001";
-    if (lastPlayer) {
-      newGuestId = incrementHexId(lastPlayer.guestId);
+    if (firstPlayer) {
+      newGuestId = incrementHexId(firstPlayer.guestId);
     }
     const newPlayer = new Player({ guestId: newGuestId });
     await newPlayer.save();

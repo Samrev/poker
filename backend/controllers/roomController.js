@@ -34,12 +34,29 @@ export const createRoom = async (req, res) => {
 };
 
 export const getRoom = async (req, res) => {
-  const { roomId } = req.params;
-  const room = await Room.findOne({ roomId: roomId }).populate("players");
-  if (room) {
-    res.status(200).json(room);
-  } else {
-    res.status(404).json({ message: "Room not found" });
+  try {
+    const { roomId } = req.params;
+    const room = await Room.findOne({ roomId }).populate("players");
+
+    if (room) {
+      const roomData = {
+        roomId: room.roomId,
+        maxNumberOfPlayers: room.maxNumberOfPlayers,
+        numberOfPlayers: room.numberOfPlayers,
+        players: room.players.map((player) => ({
+          guestId: player.guestId,
+          isPlaying: player.isPlaying,
+          roomId: room.roomId,
+        })),
+      };
+
+      res.status(200).json(roomData);
+    } else {
+      res.status(404).json({ message: "Room not found" });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 

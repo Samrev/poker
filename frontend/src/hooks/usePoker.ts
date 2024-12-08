@@ -26,9 +26,7 @@ export const usePoker = (
       }
     };
 
-    if (roomId && guestId) {
-      fetchplayerData();
-    }
+    fetchplayerData();
   }, [roomId, guestId, refreshTrigger]);
 
   return { playerData, error, refetch };

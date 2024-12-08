@@ -20,6 +20,7 @@ export const startGame = async (
     }
   } catch (error) {
     console.error("Error starting the game:", error);
+    throw error;
   }
 };
 
@@ -46,6 +47,7 @@ export const getGame = async (
     }
   } catch (error) {
     console.error("Error getting the game:", error);
+    throw error;
   }
 };
 
@@ -93,13 +95,14 @@ export const raiseGame = async (
     });
 
     if (res.data && res.status === 200) {
-      console.log("check successful");
+      console.log("raise successful");
       return res.data;
     } else {
       console.error("Failed to raise");
     }
   } catch (error) {
     console.error("Error raising the bid:", error);
+    throw error;
   }
 };
 
@@ -126,6 +129,7 @@ export const allInGame = async (
     }
   } catch (error) {
     console.error("Error all In", error);
+    throw error;
   }
 };
 
@@ -152,30 +156,48 @@ export const foldGame = async (
     }
   } catch (error) {
     console.error("Error folding", error);
+    throw error;
   }
 };
-
-export const resetGame = async (
-  roomId: string | undefined,
-  guestId: string | undefined
-): Promise<any> => {
+export const resetRound = async (roomId: string | undefined): Promise<any> => {
   try {
     const server = process.env.REACT_APP_API_URL;
     if (!server) {
       throw new Error("API base URL is not defined");
     }
-    const res = await axios.put(`${server}/api/games/reset`, null, {
+    const res = await axios.put(`${server}/api/games/resetRound`, null, {
       params: {
-        guestId: guestId,
+        roomId: roomId,
+      },
+    });
+    if (res.data && res.status === 200) {
+      return res.data;
+    } else {
+      console.error("Failed to reset round");
+    }
+  } catch (error) {
+    console.log("Erros resetting the round", error);
+  }
+};
+export const resetGame = async (roomId: string | undefined): Promise<any> => {
+  try {
+    const server = process.env.REACT_APP_API_URL;
+    if (!server) {
+      throw new Error("API base URL is not defined");
+    }
+    const res = await axios.put(`${server}/api/games/resetGame`, null, {
+      params: {
+        roomId: roomId,
       },
     });
 
     if (res.data && res.status === 200) {
       return res.data;
     } else {
-      console.error("Failed to reset");
+      console.error("Failed to reset game");
     }
   } catch (error) {
     console.error("Error resetting the game", error);
+    throw error;
   }
 };

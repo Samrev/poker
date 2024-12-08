@@ -1,8 +1,6 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { getRoom } from "../../api/room";
 import "../../styles/Room.css";
-import { Player } from "../../types";
 import {
   FaCheckCircle,
   FaPlay,
@@ -12,11 +10,11 @@ import {
 import { leaveRoom, toggleReadyPlayer } from "../../api/players";
 import { startGame } from "../../api/game";
 import { socketRoom } from "../../utils/socketInstance";
+import { useRoom } from "../../hooks/useRoom";
 
 const Room: React.FC = () => {
   const location = useLocation();
   const { roomId, guestId } = location.state || {};
-  console.log(roomId, guestId);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -26,32 +24,16 @@ const Room: React.FC = () => {
     socketRoom.emit("joinRoom", { roomId, guestId });
   }, [guestId, roomId, navigate]);
 
-  const [players, setPlayers] = useState<Player[]>([]);
-  const [maxNumberOfPlayers, setMaxNumberOfPlayers] = useState<number>(0);
+  const { roomData, refetch } = useRoom(roomId);
+  const players = roomData?.players;
+  const maxNumberOfPlayers = roomData?.maxNumberOfPlayers;
   const [isStartButtonEnabled, setStartButtonEnabled] = useState(false);
 
-  const checkIfReadyToStart = (
-    players: Player[],
-    maxNumberOfPlayers: number
-  ) => {
-    const allPlayersIn = players.length === maxNumberOfPlayers;
-    const allPlayersReady = players.every((player) => player.isPlaying);
+  useEffect(() => {
+    const allPlayersIn = players?.length === maxNumberOfPlayers;
+    const allPlayersReady = (players || []).every((player) => player.isPlaying);
     setStartButtonEnabled(allPlayersReady && allPlayersIn);
-  };
-
-  // TODO : refactor into useRoom
-  const fetchRoomData = useCallback(async () => {
-    try {
-      const room = await getRoom(roomId);
-      if (room) {
-        setPlayers(room.players || []);
-        setMaxNumberOfPlayers(room.maxNumberOfPlayers || 0); // Set max players
-        checkIfReadyToStart(room.players || [], room.maxNumberOfPlayers);
-      }
-    } catch (error) {
-      console.error("Failed to fetch room data", error);
-    }
-  }, [roomId]);
+  }, [maxNumberOfPlayers, players]);
 
   const handlePlayerReady = async () => {
     try {
@@ -79,10 +61,7 @@ const Room: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchRoomData();
-    //TODO: change to one event
-
-    socketRoom.on("roomStatusChanged", fetchRoomData);
+    socketRoom.on("roomStatusChanged", refetch);
     socketRoom.on("gameStarted", () => {
       socketRoom.disconnect();
       navigate("/poker", { state: { roomId, guestId } });
@@ -92,14 +71,16 @@ const Room: React.FC = () => {
       socketRoom.off("roomStatusChanged");
       socketRoom.off("gameStarted");
     };
-  }, [fetchRoomData, roomId, guestId, navigate]);
+  }, [roomId, guestId, navigate, refetch]);
 
-  const isHost = players.length > 0 && players[0].guestId === guestId;
+  const isHost = players
+    ? players.length > 0 && players[0].guestId === guestId
+    : false;
 
   const playerBlocks = Array.from(
-    { length: maxNumberOfPlayers },
+    { length: roomData?.maxNumberOfPlayers || 0 },
     (_, index) => {
-      const player = players[index];
+      const player = roomData?.players[index];
       return (
         <div
           key={index}

@@ -86,7 +86,7 @@ const gameSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
-  lastPlayer: {
+  firstPlayer: {
     type: String,
     required: true,
   },

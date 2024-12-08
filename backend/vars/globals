@@ -1,4 +1,4 @@
-const deck = [
+export const deck = [
   // 2s
   "2_of_clubs",
   "2_of_diamonds",
@@ -65,4 +65,8 @@ const deck = [
   "ace_of_hearts",
   "ace_of_spades",
 ];
-export default deck;
+export const gameStatus = {
+  roundCompletion: "ROUND_COMPLETED",
+  gameCompletion: "GAME_COMPLETED",
+  noCompletion: "CONTINUE",
+};

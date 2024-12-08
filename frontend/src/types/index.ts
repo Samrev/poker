@@ -22,11 +22,7 @@ export interface CreateRoomModalProps {
 export interface CardDisplayProps {
   card: string;
 }
-export interface RoomData {
-  roomId: string;
-  numberOfPlayers: number;
-  maxNumberOfPlayers: number;
-}
+
 export interface PlayerGameData {
   potBalance: number;
   currentBid: number;
@@ -41,6 +37,6 @@ export interface PlayerGameData {
   playerStatus: boolean;
   nextTurn: Record<string, string>;
   roundNo: number;
-  lastPlayer: string;
+  firstPlayer: string;
   contributedPlayersBids: Record<string, number>;
 }

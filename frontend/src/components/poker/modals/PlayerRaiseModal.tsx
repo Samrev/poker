@@ -1,8 +1,5 @@
 import React, { useState } from "react";
 import { PlayerGameData } from "../../../types";
-import { raiseGame } from "../../../api/game";
-import { showErrorToast, showSuccessToast } from "../../../utils/toastUtils";
-import { socketPoker } from "../../../utils/socketInstance";
 import "../../../styles/PlayerRaiseModal.css";
 interface PlayerRaiseModalProps {
   playerData: PlayerGameData;
@@ -17,7 +14,8 @@ const PlayerRaiseModal: React.FC<PlayerRaiseModalProps> = ({
   handleRaise,
 }) => {
   const maxRaiseAmount = Number(playerData.playersBalances[guestId]);
-  const [raiseAmount, setRaiseAmount] = useState(playerData.currentBid + 5);
+  const minRaiseAmount = Number(playerData.currentBid + 5);
+  const [raiseAmount, setRaiseAmount] = useState(minRaiseAmount);
 
   return (
     <div className="modal">
@@ -26,7 +24,7 @@ const PlayerRaiseModal: React.FC<PlayerRaiseModalProps> = ({
         <p>Select your raise amount:</p>
         <input
           type="range"
-          min={playerData.currentBid}
+          min={minRaiseAmount}
           max={maxRaiseAmount}
           step="5"
           value={raiseAmount}

@@ -23,7 +23,7 @@ export const getRoom = async (
 ): Promise<Room | undefined> => {
   const server = process.env.REACT_APP_API_URL!;
   try {
-    const res = await axios.get(`${server}/api/rooms/${roomId}`);
+    const res = await axios.get<Room>(`${server}/api/rooms/${roomId}`);
     if (res.status === 200 && res.data) {
       console.log("Got room", res.data);
       return res.data;

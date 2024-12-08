@@ -1,7 +1,6 @@
 import Game from "../models/game.js";
 import Room from "../models/room.js";
-import Player from "../models/player.js";
-import deck from "../vars/deck";
+import { gameStatus, deck } from "../vars/globals";
 
 const shuffle = (array) => {
   return array
@@ -23,7 +22,7 @@ export const startGame = async (req, res) => {
     let playersBids = {};
     let nextTurn = {};
     let cardIndex = 0;
-    let lastPlayer = players[room.numberOfPlayers - 1];
+    let firstPlayer = players[room.numberOfPlayers - 1];
     let contributedPlayersBids = {};
     for (let playerId of players) {
       playersCards[playerId] = [
@@ -34,8 +33,8 @@ export const startGame = async (req, res) => {
       playersBalances[playerId] = 500;
       playersBids[playerId] = 0;
       contributedPlayersBids[playerId] = 0;
-      nextTurn[lastPlayer] = playerId;
-      lastPlayer = playerId;
+      nextTurn[firstPlayer] = playerId;
+      firstPlayer = playerId;
     }
 
     let pokerCards = [];
@@ -55,7 +54,7 @@ export const startGame = async (req, res) => {
       currentBigBlind: players[2],
       playersStatus: playersStatus,
       nextTurn: nextTurn,
-      lastPlayer: players[0],
+      firstPlayer: players[1],
       contributedPlayersBids: contributedPlayersBids,
     });
 
@@ -85,7 +84,7 @@ export const getGame = async (req, res) => {
       playerStatus: game.playersStatus[guestId],
       nextTurn: game.nextTurn,
       roundNo: game.roundNo,
-      lastPlayer: game.lastPlayer,
+      firstPlayer: game.firstPlayer,
       contributedPlayersBids: game.contributedPlayersBids,
     };
     console.log(`got the game in ${roomId}`);
@@ -111,13 +110,19 @@ export const checkGame = async (req, res) => {
     }
 
     const nextTurnGuestId = game.nextTurn[guestId];
+    const isCompleted =
+      nextTurnGuestId === game.firstPlayer
+        ? game.roundNo === 3
+          ? gameStatus.gameCompletion
+          : gameStatus.roundCompletion
+        : gameStatus.noCompletion;
+
     const updatedGame = await Game.findOneAndUpdate(
       { roomId: roomId },
       {
         $inc: {
           [`playersBalances.${guestId}`]: -game.currentBid,
           potBalance: game.currentBid,
-          roundNo: nextTurnGuestId === game.lastPlayer ? 1 : 0,
           [`contributedPlayersBids.${guestId}`]: game.currentBid,
         },
         $set: {
@@ -131,7 +136,10 @@ export const checkGame = async (req, res) => {
     if (!updatedGame) {
       return res.status(500).json({ error: "Failed to update the game state" });
     }
-    res.status(200).json({ message: "Check action completed successfully" });
+    res.status(200).json({
+      message: "Check action completed successfully",
+      isCompleted: isCompleted,
+    });
   } catch (error) {
     console.log(error);
     res
@@ -156,6 +164,7 @@ export const raiseGame = async (req, res) => {
     }
 
     const nextTurnGuestId = game.nextTurn[guestId];
+
     await Game.findOneAndUpdate(
       { roomId: roomId },
       {
@@ -167,13 +176,14 @@ export const raiseGame = async (req, res) => {
         $set: {
           playerTurn: nextTurnGuestId,
           [`playersBids.${guestId}`]: bidAsNumber,
-          lastPlayer: guestId,
+          firstPlayer: guestId,
           currentBid: bidAsNumber,
         },
       }
     );
-
-    res.status(200).json({ message: "Raise action completed successfully" });
+    res.status(200).json({
+      message: "Raise action completed successfully",
+    });
   } catch (error) {
     console.log(error);
     res
@@ -197,12 +207,16 @@ export const foldGame = async (req, res) => {
     }
 
     const nextTurnGuestId = game.nextTurn[guestId];
+    const isCompleted =
+      nextTurnGuestId === game.firstPlayer
+        ? game.roundNo === 3
+          ? gameStatus.gameCompletion
+          : gameStatus.roundCompletion
+        : gameStatus.noCompletion;
+
     await Game.findOneAndUpdate(
       { roomId: roomId },
       {
-        $inc: {
-          roundNo: nextTurnGuestId === game.lastPlayer ? 1 : 0,
-        },
         $set: {
           [`playersStatus.${guestId}`]: false,
           playerTurn: nextTurnGuestId,
@@ -210,7 +224,10 @@ export const foldGame = async (req, res) => {
       }
     );
 
-    res.status(200).json({ message: "Fold action completed successfully" });
+    res.status(200).json({
+      message: "Fold action completed successfully",
+      isCompleted: isCompleted,
+    });
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "An error occurred during the fold action" });
@@ -232,13 +249,19 @@ export const allInGame = async (req, res) => {
     }
 
     const nextTurnGuestId = game.nextTurn[guestId];
+    const isCompleted =
+      nextTurnGuestId === game.firstPlayer
+        ? game.roundNo === 3
+          ? gameStatus.gameCompletion
+          : gameStatus.roundCompletion
+        : gameStatus.noCompletion;
+
     const playerBalance = game.playersBalances[guestId];
 
     await Game.findOneAndUpdate(
       { roomId: roomId },
       {
         $inc: {
-          roundNo: nextTurnGuestId === game.lastPlayer ? 1 : 0,
           [`contributedPlayersBids.${guestId}`]: playerBalance,
         },
         $set: {
@@ -248,12 +271,50 @@ export const allInGame = async (req, res) => {
       }
     );
 
-    res.status(200).json({ message: "All-in action completed successfully" });
+    res.status(200).json({
+      message: "All-in action completed successfully",
+      isCompleted: isCompleted,
+    });
   } catch (error) {
     console.log(error);
     res
       .status(500)
       .json({ error: "An error occurred during the all-in action" });
+  }
+};
+
+export const resetRound = async (req, res) => {
+  try {
+    const { roomId } = req.query;
+    const game = await Game.findOne({ roomId: roomId });
+    if (!game) {
+      return res.status(404).json({ error: "Game not found" });
+    }
+    let playersBids = {};
+    for (const playerId of Object.keys(game.playersStatus)) {
+      playersBids[playerId] = 0;
+    }
+    await Game.findOneAndUpdate(
+      { roomId: roomId },
+      {
+        $inc: {
+          roundNo: 1,
+        },
+        $set: {
+          playerTurn: game.firstPlayer,
+          playersBids: playersBids,
+          currentBid: 0,
+        },
+      }
+    );
+    res
+      .status(200)
+      .json({ message: "Game has been moved to next round successfully" });
+  } catch (error) {
+    console.log(error);
+    res
+      .status(500)
+      .json({ error: "An error occurred while moving the game to next round" });
   }
 };
 
@@ -276,7 +337,7 @@ export const resetGame = async (req, res) => {
     const currentSmallBlind = game.nextTurn[currentDealer];
     const currentBigBlind = game.nextTurn[currentSmallBlind];
 
-    for (let playerId of game.players) {
+    for (const playerId of Object.keys(game.playersStatus)) {
       playersCards[playerId] = [
         shuffledDeck[cardIndex++],
         shuffledDeck[cardIndex++],
@@ -306,7 +367,7 @@ export const resetGame = async (req, res) => {
           currentSmallBlind: currentSmallBlind,
           currentBigBlind: currentBigBlind,
           roundNo: 0,
-          lastPlayer: currentDealer,
+          firstPlayer: currentDealer,
         },
       }
     );

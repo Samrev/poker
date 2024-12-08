@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { PlayerGameData } from "../../types";
-import { allInGame, checkGame, foldGame, raiseGame } from "../../api/game";
+import {
+  allInGame,
+  checkGame,
+  foldGame,
+  raiseGame,
+  resetRound,
+} from "../../api/game";
 import { showErrorToast, showSuccessToast } from "../../utils/toastUtils";
 import PlayerRaiseModal from "./modals/PlayerRaiseModal";
 import { socketPoker } from "../../utils/socketInstance";
@@ -10,6 +16,10 @@ interface PlayerActionsProps {
   guestId: string;
   roomId: string;
   refetchGameData: () => void;
+}
+enum GameStatus {
+  roundCompletion = "ROUND_COMPLETED",
+  gameCompletion = "GAME_COMPLETED",
 }
 
 const PlayerActions: React.FC<PlayerActionsProps> = ({
@@ -25,6 +35,7 @@ const PlayerActions: React.FC<PlayerActionsProps> = ({
   const hasBalanceToRaise =
     Number(playerData.playersBalances[guestId]) > playerData.currentBid;
   const isNotBlind =
+    playerData.roundNo > 0 ||
     playerData.currentBid >= 10 ||
     (!playerData.isSmallBlind && !playerData.isBigBlind);
 
@@ -52,8 +63,12 @@ const PlayerActions: React.FC<PlayerActionsProps> = ({
   };
   const handleCheck = async () => {
     try {
-      await checkGame(roomId, guestId);
+      const res = await checkGame(roomId, guestId);
       showSuccessToast("Player checked");
+      if (res.isCompleted === GameStatus.roundCompletion) {
+        await resetRound(roomId);
+      } else if (res.isCompleted === GameStatus.gameCompletion) {
+      }
       socketPoker.emit("playerMoved", { guestId, roomId });
     } catch (error) {
       showErrorToast("Failed to check the game. Please try again.");
@@ -62,8 +77,11 @@ const PlayerActions: React.FC<PlayerActionsProps> = ({
 
   const handleFold = async () => {
     try {
-      await foldGame(roomId, guestId);
+      const res = await foldGame(roomId, guestId);
       showSuccessToast("Player folded");
+      if (res.isCompleted) {
+        await resetRound(roomId);
+      }
       socketPoker.emit("playerMoved", { guestId, roomId });
     } catch (error) {
       showErrorToast("Failed to fold the game. Please try again.");
@@ -72,8 +90,11 @@ const PlayerActions: React.FC<PlayerActionsProps> = ({
 
   const handleAllIn = async () => {
     try {
-      await allInGame(roomId, guestId);
+      const res = await allInGame(roomId, guestId);
       showSuccessToast("Player All In");
+      if (res.isCompleted) {
+        await resetRound(roomId);
+      }
       socketPoker.emit("playerMoved", { guestId, roomId });
     } catch (error) {
       showErrorToast("Failed to all In the game. Please try again.");
