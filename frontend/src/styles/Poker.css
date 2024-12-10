@@ -153,6 +153,31 @@
   opacity: 0.3;
 }
 
+.next-round-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 20px;
+  transition:
+    background-color 0.3s ease,
+    transform 0.2s ease;
+}
+
+.next-round-button:hover {
+  background-color: #0056b3;
+  transform: scale(1.05);
+}
+
+.next-round-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
 .check {
   background: linear-gradient(135deg, #2980b9, #3498db);
 }

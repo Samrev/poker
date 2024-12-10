@@ -53,32 +53,29 @@ const isSameSuit = (suits) => suits.every((suit) => suit === suits[0]);
 const isSeq = (ranks) =>
   ranks.every((rank, i, arr) => i === 0 || rank === arr[i - 1] + 1);
 
-export const isRoyalFlush = (suits, ranks) =>
+const isRoyalFlush = (suits, ranks) =>
   isSameSuit(suits) &&
   JSON.stringify(ranks) === JSON.stringify([10, 11, 12, 13, 14]);
 
-export const isStraightFlush = (suits, ranks) =>
-  isSameSuit(suits) && isSeq(ranks);
+const isStraightFlush = (suits, ranks) => isSameSuit(suits) && isSeq(ranks);
 
-export const isFourOfAKind = (rankCount) =>
-  Object.values(rankCount).includes(4);
+const isFourOfAKind = (rankCount) => Object.values(rankCount).includes(4);
 
-export const isFullHouse = (rankCount) =>
+const isFullHouse = (rankCount) =>
   Object.values(rankCount).includes(3) && Object.values(rankCount).includes(2);
 
-export const isFlush = (suits) => isSameSuit(suits);
+const isFlush = (suits) => isSameSuit(suits);
 
-export const isStraight = (ranks) => isSeq(ranks);
+const isStraight = (ranks) => isSeq(ranks);
 
-export const isThreeOfAKind = (rankCount) =>
-  Object.values(rankCount).includes(3);
+const isThreeOfAKind = (rankCount) => Object.values(rankCount).includes(3);
 
-export const isTwoPair = (rankCount) =>
+const isTwoPair = (rankCount) =>
   Object.values(rankCount).filter((count) => count === 2).length === 2;
 
-export const isOnePair = (rankCount) => Object.values(rankCount).includes(2);
+const isOnePair = (rankCount) => Object.values(rankCount).includes(2);
 
-export const evaluateHand = (cards) => {
+const evaluateHand = (cards) => {
   const ranks = mapToRanks(cards);
   const suits = cards.map((card) => card.split("_").pop());
   const rankCount = getRankCount(ranks);
@@ -106,7 +103,7 @@ export const evaluateHand = (cards) => {
   return hand;
 };
 
-export const pokerHand = (hands) => {
+const pokerHand = (hands) => {
   const combinations = getCombinations(hands, 5);
   let bestHand = 9;
   let bestRanks = [2, 2, 2, 2, 2];
@@ -130,15 +127,16 @@ export const pokerHand = (hands) => {
   return { bestHand, bestRanks };
 };
 
-export const pokerWinner = (pokerCards, playersCards) => {
+export const pokerWinner = (pokerCards, playersCards, playersStatus) => {
   let bestHandRank = 10;
   let bestRanks;
   let winners = [];
 
   for (const [player, playerCards] of Object.entries(playersCards)) {
+    if (!playersStatus[player]) continue;
+
     const allCards = [...pokerCards, ...playerCards];
     const { bestHand, bestRanks: playerBestRanks } = pokerHand(allCards);
-
     if (bestHand < bestHandRank) {
       bestHandRank = bestHand;
       bestRanks = playerBestRanks;
@@ -170,15 +168,3 @@ export const pokerWinner = (pokerCards, playersCards) => {
     bestRanks,
   };
 };
-
-const test1 = [
-  "ace_of_spades",
-  "2_of_hearts",
-  "2_of_clubs",
-  "3_of_clubs",
-  "2_of_diamonds",
-  "4_of_hearts",
-  "5_of_diamonds",
-];
-
-console.log(pokerHand(test1));

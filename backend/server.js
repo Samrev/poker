@@ -1,24 +1,14 @@
-import express from "express";
-import guestRoutes from "./routes/guestRoutes.js";
-import cors from "cors";
-import roomRoutes from "./routes/roomRoutes.js";
-import gameRoutes from "./routes/gameRoutes.js";
-import connectDB from "./connect.js";
+import connectDB from "./config/db.js";
 import dotenv from "dotenv";
 import { Server } from "socket.io";
-import { socketRoomHandler, socketPokerHandler } from "./sockets.js";
+import app from "./app.js";
+import socketHandlers from "./sockets/index.js";
 
+// Configure environment variables
 dotenv.config();
 const PORT = process.env.PORT || 3000;
-const app = express();
 
-app.use(express.json());
-app.use(cors());
-app.use(express.urlencoded({ extended: false }));
-app.use("/api/guests", guestRoutes);
-app.use("/api/rooms", roomRoutes);
-app.use("/api/games", gameRoutes);
-
+// Connect to database
 connectDB();
 
 const server = app.listen(PORT, () => {
@@ -31,5 +21,4 @@ const io = new Server(server, {
     methods: ["GET", "POST", "PUT"],
   },
 });
-socketRoomHandler(io);
-socketPokerHandler(io);
+socketHandlers(io);

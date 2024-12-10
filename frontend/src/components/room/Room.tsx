@@ -53,29 +53,28 @@ const Room: React.FC = () => {
       console.error("Failed to leave room", error);
     }
   };
+  const isHost = players
+    ? players.length > 0 && players[0].guestId === guestId
+    : false;
 
   const handleStartGame = async () => {
     await startGame(roomId);
     socketRoom.emit("startGame", { roomId });
-    navigate("/poker", { state: { roomId, guestId } });
+    navigate("/poker", { state: { roomId, guestId, isHost } });
   };
 
   useEffect(() => {
     socketRoom.on("roomStatusChanged", refetch);
     socketRoom.on("gameStarted", () => {
       socketRoom.disconnect();
-      navigate("/poker", { state: { roomId, guestId } });
+      navigate("/poker", { state: { roomId, guestId, isHost } });
     });
 
     return () => {
       socketRoom.off("roomStatusChanged");
       socketRoom.off("gameStarted");
     };
-  }, [roomId, guestId, navigate, refetch]);
-
-  const isHost = players
-    ? players.length > 0 && players[0].guestId === guestId
-    : false;
+  }, [roomId, guestId, navigate, refetch, isHost]);
 
   const playerBlocks = Array.from(
     { length: roomData?.maxNumberOfPlayers || 0 },

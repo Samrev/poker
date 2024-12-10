@@ -1,5 +1,6 @@
 import Game from "../models/game.js";
 import Room from "../models/room.js";
+import { pokerWinner } from "../services/poker.js";
 import { gameStatus, deck } from "../vars/globals";
 
 const shuffle = (array) => {
@@ -99,7 +100,7 @@ export const checkGame = async (req, res) => {
   try {
     const { roomId } = req.query;
     let { guestId } = req.query;
-    const game = await Game.findOneAndUpdate({ roomId: roomId });
+    const game = await Game.findOne({ roomId: roomId });
 
     if (!game) {
       return res.status(404).json({ error: "Game not found" });
@@ -154,7 +155,7 @@ export const raiseGame = async (req, res) => {
 
     let { guestId } = req.query;
     const bidAsNumber = Number(bid);
-    const game = await Game.findOneAndUpdate({ roomId: roomId });
+    const game = await Game.findOne({ roomId: roomId });
 
     if (!game) {
       return res.status(404).json({ error: "Game not found" });
@@ -196,7 +197,7 @@ export const foldGame = async (req, res) => {
   try {
     const { roomId } = req.query;
     let { guestId } = req.query;
-    const game = await Game.findOneAndUpdate({ roomId: roomId });
+    const game = await Game.findOne({ roomId: roomId });
 
     if (!game) {
       return res.status(404).json({ error: "Game not found" });
@@ -238,7 +239,7 @@ export const allInGame = async (req, res) => {
   try {
     const { roomId } = req.query;
     let { guestId } = req.query;
-    const game = await Game.findOneAndUpdate({ roomId: roomId });
+    const game = await Game.findOne({ roomId: roomId });
 
     if (!game) {
       return res.status(404).json({ error: "Game not found" });
@@ -318,12 +319,33 @@ export const resetRound = async (req, res) => {
   }
 };
 
+export const getWinners = async (req, res) => {
+  try {
+    const { roomId } = req.query;
+    const game = await Game.findOne({ roomId: roomId });
+    if (!game) {
+      return res.status(404).json({ error: "Game not found" });
+    }
+    const winners = pokerWinner(
+      game.pokerCards,
+      game.playersCards,
+      game.playersStatus
+    );
+    res.status(200).json({ message: "Found winner sucessfully" });
+    req.io.of("/poker").to(roomId).emit("roundFinished", {
+      winners: winners,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "An error occurred while getting winners" });
+  }
+};
+
 export const resetGame = async (req, res) => {
   try {
     const { roomId } = req.query;
     const shuffledDeck = shuffle(deck);
     const game = await Game.findOne({ roomId: roomId });
-
     if (!game) {
       return res.status(404).json({ error: "Game not found" });
     }
