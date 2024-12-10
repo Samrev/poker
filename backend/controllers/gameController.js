@@ -88,6 +88,7 @@ export const getGame = async (req, res) => {
       firstPlayer: game.firstPlayer,
       contributedPlayersBids: game.contributedPlayersBids,
     };
+    console.log(game.playerTurn);
     console.log(`got the game in ${roomId}`);
     res.status(200).json(playerGame);
   } catch (error) {

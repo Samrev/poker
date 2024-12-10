@@ -35,7 +35,7 @@ const PlayerRaiseModal: React.FC<PlayerRaiseModalProps> = ({
           Selected Amount: <strong>${raiseAmount}</strong>
         </p>
         <div className="modal-actions">
-          <button onClick={() => handleRaise(5)}>Submit</button>
+          <button onClick={() => handleRaise(raiseAmount)}>Submit</button>
           <button onClick={() => handleCloseRaiseModal()}>Cancel</button>
         </div>
       </div>

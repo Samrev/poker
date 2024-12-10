@@ -26,6 +26,7 @@ const Poker: React.FC = () => {
 
   const { playerData, error, refetch } = usePoker(roomId, guestId);
   const [showBalancesModal, setShowBalancesModal] = useState<boolean>(false);
+  const [isNextRoundEnabled, setIsNextRoundEnabled] = useState<boolean>(false);
 
   if (error) {
     console.error("Error fetching game data:", error);
@@ -35,7 +36,9 @@ const Poker: React.FC = () => {
   if (!playerData) {
     return <div>Loading...</div>;
   }
-
+  const handleStartNextRound = () => {
+    setIsNextRoundEnabled(true);
+  };
   const handleShowBalances = () => {
     setShowBalancesModal(true);
   };
@@ -55,8 +58,6 @@ const Poker: React.FC = () => {
     }
   };
 
-  const isNextRoundEnabled = false;
-
   return (
     <div className="poker-container">
       <div className="pot-bid-container">
@@ -72,6 +73,7 @@ const Poker: React.FC = () => {
         guestId={guestId}
         roomId={roomId}
         refetchGameData={refetch}
+        handleStartNextRound={handleStartNextRound}
       />
 
       {isHost && (
