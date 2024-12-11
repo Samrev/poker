@@ -10,6 +10,13 @@ const shuffle = (array) => {
     .map((a) => a.value);
 };
 
+const findNextPlayer = (playersStatus, nextTurn, guestId) => {
+  while (!playersStatus[nextTurn[guestId]]) {
+    guestId = nextTurn[guestId];
+  }
+  return nextTurn[guestId];
+};
+
 export const startGame = async (req, res) => {
   const { roomId } = req.body;
   const shuffledDeck = shuffle(deck);
@@ -88,7 +95,6 @@ export const getGame = async (req, res) => {
       firstPlayer: game.firstPlayer,
       contributedPlayersBids: game.contributedPlayersBids,
     };
-    console.log(game.playerTurn);
     console.log(`got the game in ${roomId}`);
     res.status(200).json(playerGame);
   } catch (error) {
@@ -107,11 +113,11 @@ export const checkGame = async (req, res) => {
       return res.status(404).json({ error: "Game not found" });
     }
 
-    while (!game.playersStatus[game.nextTurn[guestId]]) {
-      guestId = game.nextTurn[guestId];
-    }
-
-    const nextTurnGuestId = game.nextTurn[guestId];
+    const nextTurnGuestId = findNextPlayer(
+      game.playersStatus,
+      game.nextTurn,
+      guestId
+    );
     const isCompleted =
       nextTurnGuestId === game.firstPlayer
         ? game.roundNo === 3
@@ -119,13 +125,15 @@ export const checkGame = async (req, res) => {
           : gameStatus.roundCompletion
         : gameStatus.noCompletion;
 
+    const addMoney = game.currentBid - game.playersBids[guestId];
+
     const updatedGame = await Game.findOneAndUpdate(
       { roomId: roomId },
       {
         $inc: {
-          [`playersBalances.${guestId}`]: -game.currentBid,
-          potBalance: game.currentBid,
-          [`contributedPlayersBids.${guestId}`]: game.currentBid,
+          [`playersBalances.${guestId}`]: -addMoney,
+          potBalance: addMoney,
+          [`contributedPlayersBids.${guestId}`]: addMoney,
         },
         $set: {
           playerTurn: nextTurnGuestId,
@@ -161,11 +169,11 @@ export const raiseGame = async (req, res) => {
     if (!game) {
       return res.status(404).json({ error: "Game not found" });
     }
-    while (!game.playersStatus[game.nextTurn[guestId]]) {
-      guestId = game.nextTurn[guestId];
-    }
-
-    const nextTurnGuestId = game.nextTurn[guestId];
+    const nextTurnGuestId = findNextPlayer(
+      game.playersStatus,
+      game.nextTurn,
+      guestId
+    );
 
     await Game.findOneAndUpdate(
       { roomId: roomId },
@@ -204,11 +212,16 @@ export const foldGame = async (req, res) => {
       return res.status(404).json({ error: "Game not found" });
     }
 
-    while (!game.playersStatus[game.nextTurn[guestId]]) {
-      guestId = game.nextTurn[guestId];
-    }
+    const nextTurnGuestId = findNextPlayer(
+      game.playersStatus,
+      game.nextTurn,
+      guestId
+    );
 
-    const nextTurnGuestId = game.nextTurn[guestId];
+    //advance firstPlayer if current player is firstPlayer
+    let firstPlayer =
+      game.firstPlayer === guestId ? nextTurnGuestId : game.firstPlayer;
+
     const isCompleted =
       nextTurnGuestId === game.firstPlayer
         ? game.roundNo === 3
@@ -222,6 +235,7 @@ export const foldGame = async (req, res) => {
         $set: {
           [`playersStatus.${guestId}`]: false,
           playerTurn: nextTurnGuestId,
+          firstPlayer: firstPlayer,
         },
       }
     );
@@ -246,11 +260,11 @@ export const allInGame = async (req, res) => {
       return res.status(404).json({ error: "Game not found" });
     }
 
-    while (!game.playersStatus[game.nextTurn[guestId]]) {
-      guestId = game.nextTurn[guestId];
-    }
-
-    const nextTurnGuestId = game.nextTurn[guestId];
+    const nextTurnGuestId = findNextPlayer(
+      game.playersStatus,
+      game.nextTurn,
+      guestId
+    );
     const isCompleted =
       nextTurnGuestId === game.firstPlayer
         ? game.roundNo === 3
