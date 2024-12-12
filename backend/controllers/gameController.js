@@ -341,15 +341,14 @@ export const getWinners = async (req, res) => {
     if (!game) {
       return res.status(404).json({ error: "Game not found" });
     }
-    const winners = pokerWinner(
+    const { winners, bestHand } = pokerWinner(
       game.pokerCards,
       game.playersCards,
       game.playersStatus
     );
-    res.status(200).json({ message: "Found winner sucessfully" });
-    req.io.of("/poker").to(roomId).emit("roundFinished", {
-      winners: winners,
-    });
+    res
+      .status(200)
+      .json({ message: "Found winner sucessfully", winners, bestHand });
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "An error occurred while getting winners" });

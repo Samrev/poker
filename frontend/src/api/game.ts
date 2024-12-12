@@ -201,3 +201,26 @@ export const resetGame = async (roomId: string | undefined): Promise<any> => {
     throw error;
   }
 };
+
+export const getWinners = async (roomId: string | undefined): Promise<any> => {
+  try {
+    const server = process.env.REACT_APP_API_URL;
+    if (!server) {
+      throw new Error("API base URL is not defined");
+    }
+    const res = await axios.put(`${server}/api/games/winners`, null, {
+      params: {
+        roomId: roomId,
+      },
+    });
+
+    if (res.data && res.status === 200) {
+      return res.data;
+    } else {
+      console.error("Failed to get winners");
+    }
+  } catch (error) {
+    console.error("Error getting the winners", error);
+    throw error;
+  }
+};

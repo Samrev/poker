@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import "../../styles/Poker.css";
 import { useLocation, useNavigate } from "react-router-dom";
 import PlayersBalancesModal from "./modals/PlayersBalancesModal";
@@ -9,13 +9,15 @@ import PokerTable from "./PokerTable";
 import PlayerSection from "./PlayerSection";
 import PlayerActions from "./PlayerActions";
 import { socketPoker } from "../../utils/socketInstance";
-import { resetRound } from "../../api/game";
+import { getWinners, resetGame } from "../../api/game";
 import { showErrorToast, showSuccessToast } from "../../utils/toastUtils";
+import { WinningData } from "../../types";
+import PlayersWinningModal from "./modals/PlayersWinningModal";
 
 const Poker: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { roomId, guestId, isHost } = location.state || {};
+  const { roomId, guestId } = location.state || {};
 
   useEffect(() => {
     if (!guestId || !roomId) {
@@ -27,6 +29,49 @@ const Poker: React.FC = () => {
   const { playerData, error, refetch } = usePoker(roomId, guestId);
   const [showBalancesModal, setShowBalancesModal] = useState<boolean>(false);
   const [isNextRoundEnabled, setIsNextRoundEnabled] = useState<boolean>(false);
+  const [showWinnersModal, setShowWinnersModal] = useState<boolean>(false);
+  const winningData = useRef<WinningData | undefined>();
+
+  const handleStartNextRound = useCallback(async () => {
+    try {
+      const fetchedWinners = await getWinners(roomId);
+      winningData.current = fetchedWinners;
+      setIsNextRoundEnabled(true);
+      setShowWinnersModal(true);
+      console.log("Winners of the round:", winningData.current);
+    } catch (error) {
+      console.error("Failed to fetch winners:", error);
+    }
+  }, [roomId]);
+
+  const handleShowBalances = () => {
+    setShowBalancesModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowBalancesModal(false);
+  };
+
+  const handleCloseWinnersModal = () => {
+    setShowWinnersModal(false);
+  };
+
+  const handleNextRound = async () => {
+    try {
+      await resetGame(roomId);
+      showSuccessToast("Next round started successfully!");
+      socketPoker.emit("nextRound", { roomId });
+    } catch (error) {
+      showErrorToast("Failed to start the next round. Please try again.");
+    }
+  };
+
+  useEffect(() => {
+    socketPoker.on("enabledNextRound", handleStartNextRound);
+    return () => {
+      socketPoker.off("enabledNextRound");
+    };
+  }, [handleStartNextRound]);
 
   if (error) {
     console.error("Error fetching game data:", error);
@@ -36,27 +81,6 @@ const Poker: React.FC = () => {
   if (!playerData) {
     return <div>Loading...</div>;
   }
-  const handleStartNextRound = () => {
-    setIsNextRoundEnabled(true);
-  };
-  const handleShowBalances = () => {
-    setShowBalancesModal(true);
-  };
-
-  const handleCloseModal = () => {
-    setShowBalancesModal(false);
-  };
-
-  const handleNextRound = async () => {
-    try {
-      await resetRound(roomId);
-      showSuccessToast("Next round started successfully!");
-      socketPoker.emit("nextRound", { roomId });
-      refetch();
-    } catch (error) {
-      showErrorToast("Failed to start the next round. Please try again.");
-    }
-  };
 
   return (
     <div className="poker-container">
@@ -73,10 +97,9 @@ const Poker: React.FC = () => {
         guestId={guestId}
         roomId={roomId}
         refetchGameData={refetch}
-        handleStartNextRound={handleStartNextRound}
       />
 
-      {isHost && (
+      {playerData.isSmallBlind && (
         <div className="action-buttons-container">
           <button
             className="next-round-button"
@@ -86,6 +109,12 @@ const Poker: React.FC = () => {
             Next Round
           </button>
         </div>
+      )}
+      {showWinnersModal && winningData.current && (
+        <PlayersWinningModal
+          winningData={winningData.current}
+          handleCloseWinnersModal={handleCloseWinnersModal}
+        />
       )}
 
       <div className="balance-container">

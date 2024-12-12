@@ -8,6 +8,7 @@ import {
   allInGame,
   resetGame,
   resetRound,
+  getWinners,
 } from "../controllers/gameController.js";
 
 const gameRoutes = express.Router();
@@ -19,5 +20,6 @@ gameRoutes.put("/fold", foldGame);
 gameRoutes.put("/allIn", allInGame);
 gameRoutes.put("/resetRound", resetRound);
 gameRoutes.put("/resetGame", resetGame);
+gameRoutes.put("/winners", getWinners);
 
 export default gameRoutes;

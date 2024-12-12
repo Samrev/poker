@@ -67,14 +67,14 @@ const Room: React.FC = () => {
     socketRoom.on("roomStatusChanged", refetch);
     socketRoom.on("gameStarted", () => {
       socketRoom.disconnect();
-      navigate("/poker", { state: { roomId, guestId, isHost } });
+      navigate("/poker", { state: { roomId, guestId } });
     });
 
     return () => {
       socketRoom.off("roomStatusChanged");
       socketRoom.off("gameStarted");
     };
-  }, [roomId, guestId, navigate, refetch, isHost]);
+  }, [roomId, guestId, navigate, refetch]);
 
   const playerBlocks = Array.from(
     { length: roomData?.maxNumberOfPlayers || 0 },

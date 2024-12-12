@@ -13,6 +13,16 @@ const socketPokerHandler = (io) => {
       );
       io.of("/poker").to(roomId).emit("pokerStatusChanged", { guestId });
     });
+
+    socket.on("gameCompleted", ({ roomId }) => {
+      console.log(`Game completed in ${roomId}-${socket.id}`);
+      io.of("/poker").to(roomId).emit("enabledNextRound", { roomId });
+    });
+
+    socket.on("nextRound", ({ roomId }) => {
+      console.log(`Next round started in ${roomId}-${socket.id}`);
+      io.of("/poker").to(roomId).emit("pokerStatusChanged", { roomId });
+    });
   });
 };
 

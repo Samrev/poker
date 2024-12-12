@@ -16,7 +16,6 @@ interface PlayerActionsProps {
   guestId: string;
   roomId: string;
   refetchGameData: () => void;
-  handleStartNextRound: () => void;
 }
 enum GameStatus {
   roundCompletion = "ROUND_COMPLETED",
@@ -28,7 +27,6 @@ const PlayerActions: React.FC<PlayerActionsProps> = ({
   guestId,
   roomId,
   refetchGameData,
-  handleStartNextRound,
 }) => {
   const [isRaiseModalOpen, setIsRaiseModalOpen] = useState(false);
 
@@ -70,7 +68,7 @@ const PlayerActions: React.FC<PlayerActionsProps> = ({
       if (res.isCompleted === GameStatus.roundCompletion) {
         await resetRound(roomId);
       } else if (res.isCompleted === GameStatus.gameCompletion) {
-        handleStartNextRound();
+        socketPoker.emit("gameCompleted", { roomId });
       }
       socketPoker.emit("playerMoved", { guestId, roomId });
     } catch (error) {
@@ -85,7 +83,7 @@ const PlayerActions: React.FC<PlayerActionsProps> = ({
       if (res.isCompleted) {
         await resetRound(roomId);
       } else if (res.isCompleted === GameStatus.gameCompletion) {
-        handleStartNextRound();
+        socketPoker.emit("gameCompleted");
       }
       socketPoker.emit("playerMoved", { guestId, roomId });
     } catch (error) {
@@ -100,7 +98,7 @@ const PlayerActions: React.FC<PlayerActionsProps> = ({
       if (res.isCompleted) {
         await resetRound(roomId);
       } else if (res.isCompleted === GameStatus.gameCompletion) {
-        handleStartNextRound();
+        socketPoker.emit("gameCompleted");
       }
       socketPoker.emit("playerMoved", { guestId, roomId });
     } catch (error) {
