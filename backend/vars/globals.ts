@@ -65,8 +65,26 @@ export const deck = [
   "ace_of_hearts",
   "ace_of_spades",
 ];
-export const gameStatus = {
-  roundCompletion: "ROUND_COMPLETED",
-  gameCompletion: "GAME_COMPLETED",
-  noCompletion: "CONTINUE",
-};
+export enum GameStatus {
+  ROUND_COMPLETED = "ROUND_COMPLETED",
+  GAME_COMPLETED = "GAME_COMPLETED",
+  CONTINUE = "CONTINUE",
+}
+
+export enum PlayerStatus {
+  IN_GAME = "IN_GAME",
+  FOLDED = "FOLDED",
+  ALL_IN = "ALL_IN",
+}
+
+export type hands =
+  | "Royal Flush"
+  | "Straight Flush"
+  | "Four of a Kind"
+  | "Full House"
+  | "Flush"
+  | "Straight"
+  | "Three of a Kind"
+  | "Two Pair"
+  | "One Pair"
+  | "High Card";

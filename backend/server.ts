@@ -1,12 +1,12 @@
-import connectDB from "./config/db.js";
+import connectDB from "./config";
 import dotenv from "dotenv";
 import { Server } from "socket.io";
-import app from "./app.js";
-import socketHandlers from "./sockets/index.js";
+import app from "./app";
+import socketHandlers from "./sockets";
 
 // Configure environment variables
 dotenv.config();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 
 // Connect to database
 connectDB();

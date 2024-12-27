@@ -1,9 +1,7 @@
 import express from "express";
 import cors from "cors";
-import guestRoutes from "./routes/guestRoutes.js";
-import roomRoutes from "./routes/roomRoutes.js";
-import gameRoutes from "./routes/gameRoutes.js";
-import ioInjector from "./middlewares/ioInjector.js";
+import { guestRoutes, roomRoutes, gameRoutes } from "./routes";
+import ioInjector from "./middlewares/ioInjector";
 
 const app = express();
 
