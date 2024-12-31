@@ -314,6 +314,7 @@ export const allInGame = async (req: Request, res: Response): Promise<void> => {
       { roomId: roomId },
       {
         $inc: {
+          potBalance: playerBalance,
           [`contributedPlayersBids.${guestId}`]: playerBalance,
         },
         $set: {
