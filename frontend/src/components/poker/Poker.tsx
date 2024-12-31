@@ -36,13 +36,15 @@ const Poker: React.FC = () => {
     try {
       const fetchedWinners = await getWinners(roomId);
       winningData.current = fetchedWinners;
-      setIsNextRoundEnabled(true);
+      if (playerData?.isSmallBlind) {
+        setIsNextRoundEnabled(true);
+      }
       setShowWinnersModal(true);
       console.log("Winners of the round:", winningData.current);
     } catch (error) {
       console.error("Failed to fetch winners:", error);
     }
-  }, [roomId]);
+  }, [roomId, playerData]);
 
   const handleShowBalances = () => {
     setShowBalancesModal(true);
@@ -58,6 +60,7 @@ const Poker: React.FC = () => {
 
   const handleNextRound = async () => {
     try {
+      setIsNextRoundEnabled(false);
       await resetGame(roomId);
       showSuccessToast("Next round started successfully!");
       socketPoker.emit("nextRound", { roomId });
@@ -99,13 +102,9 @@ const Poker: React.FC = () => {
         refetchGameData={refetch}
       />
 
-      {playerData.isSmallBlind && (
+      {isNextRoundEnabled && (
         <div className="action-buttons-container">
-          <button
-            className="next-round-button"
-            onClick={handleNextRound}
-            disabled={!isNextRoundEnabled}
-          >
+          <button className="next-round-button" onClick={handleNextRound}>
             Next Round
           </button>
         </div>

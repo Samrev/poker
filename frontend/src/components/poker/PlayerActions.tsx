@@ -28,6 +28,7 @@ const PlayerActions: React.FC<PlayerActionsProps> = ({
   roomId,
   refetchGameData,
 }) => {
+  const [isGameFinished, setIsGameFinished] = useState<Boolean>(false);
   const [isRaiseModalOpen, setIsRaiseModalOpen] = useState(false);
 
   const hasBalanceToCheck =
@@ -40,19 +41,29 @@ const PlayerActions: React.FC<PlayerActionsProps> = ({
     (!playerData.isSmallBlind && !playerData.isBigBlind);
 
   const isFoldEnabled =
-    isNotBlind && playerData.playerStatus && playerData.isPlayerTurn;
+    !isGameFinished &&
+    isNotBlind &&
+    playerData.playerStatus &&
+    playerData.isPlayerTurn;
 
   const isCheckEnabled =
+    !isGameFinished &&
     isNotBlind &&
     playerData?.playerStatus &&
     playerData?.isPlayerTurn &&
     hasBalanceToCheck;
 
   const isRaiseEnabled =
-    playerData.isPlayerTurn && playerData.playerStatus && hasBalanceToRaise;
+    !isGameFinished &&
+    playerData.isPlayerTurn &&
+    playerData.playerStatus &&
+    hasBalanceToRaise;
 
   const isAllInEnabled =
-    !hasBalanceToCheck && playerData.isPlayerTurn && playerData.playerStatus;
+    !isGameFinished &&
+    !hasBalanceToCheck &&
+    playerData.isPlayerTurn &&
+    playerData.playerStatus;
 
   const handleCloseRaiseModal = () => {
     setIsRaiseModalOpen(false);
@@ -80,7 +91,8 @@ const PlayerActions: React.FC<PlayerActionsProps> = ({
     try {
       const res = await foldGame(roomId, guestId);
       showSuccessToast("Player folded");
-      if (res.isCompleted) {
+      console.log("fold", res);
+      if (res.isCompleted === GameStatus.roundCompletion) {
         await resetRound(roomId);
       } else if (res.isCompleted === GameStatus.gameCompletion) {
         socketPoker.emit("gameCompleted");
@@ -95,7 +107,7 @@ const PlayerActions: React.FC<PlayerActionsProps> = ({
     try {
       const res = await allInGame(roomId, guestId);
       showSuccessToast("Player All In");
-      if (res.isCompleted) {
+      if (res.isCompleted === GameStatus.roundCompletion) {
         await resetRound(roomId);
       } else if (res.isCompleted === GameStatus.gameCompletion) {
         socketPoker.emit("gameCompleted");
@@ -116,11 +128,20 @@ const PlayerActions: React.FC<PlayerActionsProps> = ({
     }
   };
 
+  const handleStartNextRound = () => {
+    setIsGameFinished(true);
+  };
+  const handleNewGame = () => {
+    setIsGameFinished(false);
+  };
+
   useEffect(() => {
     const handlePokerStatusChange = () => {
       refetchGameData();
     };
     socketPoker.on("pokerStatusChanged", handlePokerStatusChange);
+    socketPoker.on("enabledNextRound", handleStartNextRound);
+    socketPoker.on("newGame", handleNewGame);
     return () => {
       socketPoker.off("pokerStatusChanged");
     };
