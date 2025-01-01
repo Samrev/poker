@@ -1,3 +1,1 @@
-import { rewardWinners } from "./poker";
-
-export default rewardWinners;
+export * from "./poker";

@@ -1,4 +1,5 @@
-import { PlayerStatus } from "../vars";
+import { IGame } from "../models/game";
+import { GameStatus, PlayerStatus } from "../vars";
 
 const rankOrder: Record<string, number> = {
   2: 2,
@@ -28,6 +29,65 @@ const hands: string[] = [
   "One Pair",
   "High Card",
 ];
+
+const NO_PLAYER = "-1";
+
+export const shuffle = (array: any[]): any[] => {
+  return array
+    .map((a) => ({ sort: Math.random(), value: a }))
+    .sort((a, b) => a.sort - b.sort)
+    .map((a) => a.value);
+};
+
+export const findNextPlayer = (
+  noOfPlayers: number,
+  playersStatus: Record<string, PlayerStatus>,
+  nextTurn: Record<string, string>,
+  guestId: string
+): string => {
+  let cnt = 0;
+  while (playersStatus[nextTurn[guestId]] === PlayerStatus.FOLDED) {
+    guestId = nextTurn[guestId];
+    cnt += 1;
+    if (cnt === noOfPlayers) {
+      return NO_PLAYER;
+    }
+  }
+  return nextTurn[guestId];
+};
+
+export const noPlayersLeft = (
+  playersStatus: Record<string, PlayerStatus> | undefined
+): number => {
+  let playersLeft = 0;
+  if (!playersStatus) {
+    return 0;
+  }
+  for (const player of Object.keys(playersStatus)) {
+    if (playersStatus[player] === PlayerStatus.IN_GAME) {
+      playersLeft++;
+    }
+  }
+  return playersLeft;
+};
+
+export const isGameCompleted = (updatedGame: IGame): GameStatus => {
+  let bidArray = [];
+  const playersLeft = noPlayersLeft(updatedGame.playersStatus);
+  for (const player of Object.keys(updatedGame.playersBids)) {
+    if (updatedGame.playersStatus[player] === PlayerStatus.IN_GAME) {
+      bidArray.push(updatedGame.playersBids[player]);
+    }
+  }
+  const bidMatched =
+    bidArray.length === 0 || bidArray.every((bid) => bid === bidArray[0]);
+  const isCompleted = bidMatched
+    ? playersLeft <= 1 || updatedGame.roundNo === 3
+      ? GameStatus.GAME_COMPLETED
+      : GameStatus.ROUND_COMPLETED
+    : GameStatus.CONTINUE;
+  return isCompleted;
+};
 
 const getCombinations = <T>(arr: T[], k: number): T[][] => {
   if (k === 0) return [[]];

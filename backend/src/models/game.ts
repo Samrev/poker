@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from "mongoose";
 import { PlayerStatus } from "../vars";
 
-interface IGame extends Document {
+export interface IGame extends Document {
   roomId: string;
   playersCards: { [key: string]: string[] };
   pokerCards: string[];
@@ -17,7 +17,6 @@ interface IGame extends Document {
   currentSmallBlind: string;
   nextTurn: { [key: string]: string };
   roundNo: number;
-  firstPlayer: string;
 }
 
 const gameSchema: Schema<IGame> = new mongoose.Schema({
@@ -76,7 +75,6 @@ const gameSchema: Schema<IGame> = new mongoose.Schema({
     required: true,
   },
   roundNo: { type: Number, default: 0 },
-  firstPlayer: { type: String, required: true },
 });
 
 const Game = mongoose.model<IGame>("Game", gameSchema);

@@ -32,9 +32,11 @@ const PlayerActions: React.FC<PlayerActionsProps> = ({
   const [isRaiseModalOpen, setIsRaiseModalOpen] = useState(false);
 
   const hasBalanceToCheck =
-    Number(playerData.playersBalances[guestId]) >= playerData.currentBid;
+    Number(playerData.playersBalances[guestId] + playerData.playerBid) >=
+    playerData.currentBid;
   const hasBalanceToRaise =
-    Number(playerData.playersBalances[guestId]) > playerData.currentBid;
+    Number(playerData.playersBalances[guestId] + playerData.playerBid) >
+    playerData.currentBid;
   const isNotBlind =
     playerData.roundNo > 0 ||
     playerData.currentBid >= 10 ||
@@ -95,7 +97,7 @@ const PlayerActions: React.FC<PlayerActionsProps> = ({
       if (res.isCompleted === GameStatus.roundCompletion) {
         await resetRound(roomId);
       } else if (res.isCompleted === GameStatus.gameCompletion) {
-        socketPoker.emit("gameCompleted");
+        socketPoker.emit("gameCompleted", { roomId });
       }
       socketPoker.emit("playerMoved", { guestId, roomId });
     } catch (error) {
@@ -110,7 +112,7 @@ const PlayerActions: React.FC<PlayerActionsProps> = ({
       if (res.isCompleted === GameStatus.roundCompletion) {
         await resetRound(roomId);
       } else if (res.isCompleted === GameStatus.gameCompletion) {
-        socketPoker.emit("gameCompleted");
+        socketPoker.emit("gameCompleted", { roomId });
       }
       socketPoker.emit("playerMoved", { guestId, roomId });
     } catch (error) {
@@ -119,8 +121,13 @@ const PlayerActions: React.FC<PlayerActionsProps> = ({
   };
   const handleRaise = async (raiseAmount: number) => {
     try {
-      await raiseGame(roomId, guestId, raiseAmount);
+      const res = await raiseGame(roomId, guestId, raiseAmount);
       showSuccessToast(`Player raised $${raiseAmount}`);
+      if (res.isCompleted === GameStatus.roundCompletion) {
+        await resetRound(roomId);
+      } else if (res.isCompleted === GameStatus.gameCompletion) {
+        socketPoker.emit("gameCompleted", { roomId });
+      }
       socketPoker.emit("playerMoved", { roomId, guestId });
       handleCloseRaiseModal();
     } catch (error) {
